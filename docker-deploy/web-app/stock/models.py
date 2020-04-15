@@ -7,4 +7,9 @@ class stock(models.Model):
     description = models.CharField(max_length=1000, default="") # product description
     count = models.IntegerField(default=-1) # product quantity
     worldid = models.IntegerField(default=-1)  # world id
-    whnum = models.IntegerField(default=-1)  # warehouse id
+    whid = models.IntegerField(default=-1)  # warehouse id
+
+class warehouse(models.Model):
+    whid = models.IntegerField(default=-1)  # warehouse id
+    x = models.IntegerField(default=-1)  # warehouse address
+    y = models.IntegerField(default=-1)  # warehouse address

@@ -10,3 +10,5 @@ class order(models.Model):
     pkgid = models.IntegerField(default=-1) # package id & Tracking num & Ship id
     pid = models.IntegerField(default=-1)  # product id
     count = models.IntegerField(default=-1)  # product quantity
+    whid = models.IntegerField(default=-1)  # warehouse id
+    truckid = models.IntegerField(default=-1) # truck id
