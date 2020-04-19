@@ -12,3 +12,6 @@ class order(models.Model):
     count = models.IntegerField(default=-1)  # product quantity
     whid = models.IntegerField(default=-1)  # warehouse id
     truckid = models.IntegerField(default=-1) # truck id
+    arrived = models.BooleanField(default=False)
+    ready = models.BooleanField(default=False)
+    loaded = models.BooleanField(default=False)
