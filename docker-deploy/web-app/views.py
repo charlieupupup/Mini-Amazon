@@ -61,3 +61,12 @@ def thankyou(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
     return render(request, 'thankyou.html', {})
+
+def orders(request):
+    if not request.user.is_authenticated:
+        return redirect('/accounts/login')
+    orders = order.objects.filter(user=request.user)
+    context = {
+        'orders': orders
+    }
+    return render(request, "orders.html", context)

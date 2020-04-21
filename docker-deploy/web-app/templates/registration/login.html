@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <div style="text-align: center;">
+    <p>Do not have account yet? <a href = "/accounts/register/">Signup</a></p>
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
