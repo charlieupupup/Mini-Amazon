@@ -1,62 +1,74 @@
-import socket
-import io
-#encode & decode
-from google.protobuf.internal.decoder import _DecodeVarint32
-from google.protobuf.internal.encoder import _VarintBytes
+import base
+import world_amazon_pb2
 
-# allow connection from all host
-HOST = ''
-PORT = 23456
+
+HOST_UPS = ''
+PORT_UPS = 12345
 
 """
-send request to world & ups
+send request to ups
 """
 
 
-class Client():
-    def __init__(self):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.world_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-    def send(self, msg):
-        data_string = msg.SerializeToString()
-        size = msg.ByteSize()
-        self.sock.sendall(_VarintBytes(size))
-        self.sock.sendall(data_string)
-
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((HOST, PORT))
-            s.sendall(b'Hello, world')
-            data = s.recv(1024)
-
-    def recv(self):
-        # Brian
-        var_int_buff = []
-
-        while True:
-            buf = world_socket.recv(1)
-            var_int_buff += buf
-            msg_len, new_pos = _DecodeVarint32(var_int_buff, 0)
-            if new_pos != 0:
-                break
-        whole_message = world_socket.recv(msg_len)
-        # int length is at most 4 bytes long
-        hdr_bytes = self.sock.recv(4)
-        (msg_length, hdr_length) = _DecodeVarint32(hdr_bytes, 0)
-        rsp_buffer = io.BytesIO()
-        if hdr_length < 4:
-            rsp_buffer.write(hdr_bytes[hdr_length:])
-
-        # read the remaining message bytes
-        msg_length = msg_length - (4 - hdr_length)
-        while msg_length > 0:
-            rsp_bytes = self.sock.recv(min(8096, msg_length))
-            rsp_buffer.write(rsp_bytes)
-            msg_length = msg_length - len(rsp_bytes)
-
-        return rsp_buffer.getvalue()
-
+class Client(Base):
     """
     proceed the amazon command
     """
+
+    def AConnect(self):
+        msg = amazon_pb2.AConnect()
+        msg.worldid = 1000
+        self.send(msg)
+        self.recv()
+
+    def process_AResponse(self):
+        """
+         process response of Acommnads, store the information in database for future reference
+        """
+
+        while (1):
+            str = self.recv()
+            if (len(str) > 0):
+                response = amazon_pb2.AResponses()
+                try:
+                    response.ParseFromString(str)
+                    print(response)
+                    print(len(str))
+                except:
+                    print("error")
+
+    def ALoad(self, ship_id, truck_id):
+        command = amazon_pb2.ACommands()
+        command.simspeed = 100000
+        pack = command.load.add()
+        pack.whnum = 0
+        pack.shipid = ship_id
+        pack.truckid = truck_id
+
+        self.send(command)
+
+    def AToPack(self, product_id, description, quantity, ship_id):
+        """
+        ship_id should be unique per ship
+        """
+        command = amazon_pb2.ACommands()
+        command.simspeed = 100000
+        pack = command.topack.add()
+        pack.whnum = 0
+        pack.shipid = ship_id
+        pid = pack.things.add()
+        pid.id = product_id
+        pid.description = description
+        pid.count = quantity
+        self.send(command)
+
+    def APurchase(self, product_id, description, quantity):
+        command = amazon_pb2.ACommands()
+        command.simspeed = 100000
+        purchase = command.buy.add()
+        purchase.whnum = 0
+        pid = purchase.things.add()
+        pid.id = product_id
+        pid.description = description
+        pid.count = quantity
+        self.send(command)
