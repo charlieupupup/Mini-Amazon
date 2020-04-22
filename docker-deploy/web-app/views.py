@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 
-from stock.models import stock, warehouse
+from stock.models import stock, warehouse, product
 from order.models import order
 
 def register(request):
@@ -60,6 +60,9 @@ def single(request):
 def thankyou(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
+    myorder = order.objects.get(user=request.user)
+    myorder.count = myorder.count + 1
+    myorder.save()
     return render(request, 'thankyou.html', {})
 
 def orders(request):
