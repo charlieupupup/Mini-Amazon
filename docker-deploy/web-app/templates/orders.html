@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block content %}
+<div>
+<h1>My Rides</h1>
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">user</th>
+      <th scope="col">x</th>
+      <th scope="col">y</th>
+      <th scope="col">pkgid</th>
+      <th scope="col">pid</th>
+      <th scope="col">count</th>
+      <th scope="col">whid</th>
+      <th scope="col">truckid</th>
+      <th scope="col">arrived</th>
+      <th scope="col">ready</th>
+      <th scope="col">loaded</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for order in orders %}
+    <tr>
+      <td>{{order.user}}</td>
+      <td>{{order.x}}</td>
+      <td>{{order.y}}</td>
+      <td>{{order.pkgid}}</td>
+      <td>{{order.pid}}</td>
+      <td>{{order.count}}</td>
+      <td>{{order.whid}}</td>
+      <td>{{order.truckid}}</td>
+      <td>{{order.arrived}}</td>
+      <td>{{order.ready}}</td>
+      <td>{{order.loaded}}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}
