@@ -41,11 +41,11 @@
                 <div class="block-4 text-center border">
                   <figure class="block-4-image">
                     {% with product.pic as image_static %}
-                    <a href="/shop-single/{{product.pid}}"><img src="{% static image_static %}" alt="Image placeholder" class="img-fluid"></a>
+                    <a href="/shop-single"><img src="{% static image_static %}" alt="Image placeholder" class="img-fluid"></a>
                     {% endwith %}
                   </figure>
                   <div class="block-4-text p-4">
-                    <h3><a href="/shop-single/{{product.pid}}">Product {{product.pid}}</a></h3>
+                    <h3><a href="/shop-single">Product {{product.pid}}</a></h3>
                     <p class="mb-0">{{product.description}}</p>
                     <p class="text-primary font-weight-bold">${{product.price}}</p>
                   </div>

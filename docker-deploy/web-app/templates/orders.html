@@ -1,9 +1,11 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
 {% block content %}
-<div>
-<h1>My Orders</h1>
-<table class="table">
+<div class="row">
+          <div class="col-md-12 mb-5 mb-md-0">
+            <h2 class="h3 mb-3 text-black">My Orders</h2>
+            <div class="p-3 p-lg-5 border">
+<table class="table table-bordered">
   <thead>
     <tr>
       <th scope="col">user</th>
@@ -38,4 +40,7 @@
   </tbody>
 </table>
 </div>
+          </div>
+</div>
+
 {% endblock %}

@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from views import home, cart, about, checkout, contact, shop, single, thankyou, register, signup, orders, men, women, children
+from views import home, cart, about, checkout, contact, shop, single, thankyou, register, signup, orders, men, women, children, invalid
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -33,7 +33,8 @@ urlpatterns = [
     path('shop/men', men, name='men'),
     path('shop/women', women, name='women'),
     path('shop/children', children, name='children'),
-    path('shop-single/', single, name='shop-single'),
+    path('shop-single/', checkout, name='shop-single'),
     path('thankyou/', thankyou, name='thankyou'),
     path('orders/', orders, name='orders'),
+    path('invalid', invalid, name='invalid'),
 ]

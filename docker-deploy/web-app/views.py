@@ -8,6 +8,7 @@ from django.shortcuts import render, redirect
 
 from stock.models import stock, warehouse, product
 from order.models import order
+from order.forms import orderForm
 
 def register(request):
     form = UserCreationForm
@@ -44,7 +45,11 @@ def about(request):
 def checkout(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
-    return render(request, 'checkout.html', {})
+    form = orderForm(initial={'user': request.user})
+    context = {
+        'form': form
+    }
+    return render(request, 'checkout.html', context)
 
 def contact(request):
     if not request.user.is_authenticated:
@@ -95,7 +100,22 @@ def single(request):
 def thankyou(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
-    return render(request, 'thankyou.html', {})
+    form = orderForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        return render(request, 'thankyou.html', {})
+    else:
+        return redirect('/invalid')
+
+def invalid(request):
+    if not request.user.is_authenticated:
+        return redirect('/accounts/login')
+    form = orderForm(request.POST or None)
+    context = {
+        'msg': "Invalid input, please try again",
+        'form': form
+    }
+    return render(request, 'checkout.html', context)
 
 def orders(request):
     if not request.user.is_authenticated:
