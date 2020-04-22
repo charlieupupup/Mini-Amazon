@@ -1,8 +1,6 @@
 import base
 import world_amazon_pb2
 import IG1_pb2
-HOST_UPS = ''
-PORT_UPS = 33333
 
 HOST_WORLD = ''
 PORT_WORLD = 23456
@@ -14,8 +12,8 @@ world
 """
 
 
-class ClientWorld(Base):
-    def world_put_on_truck(self, package, seq_num):
+class World(Base):
+    def world_put_on_truck(self, package, seq_num, HOST_WORLD, PORT_WORLD):
         command = world_amazon_pb2.ACommands()
         command.simspeed = SIMSPEED
         pack = command.load.add()
