@@ -25,7 +25,11 @@ def signup(request):
 def home(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
-    return render(request, 'index.html', {})
+    products = product.objects.all()
+    context = {
+        'products': products
+    }
+    return render(request, 'index.html', context)
 
 def cart(request):
     if not request.user.is_authenticated:
@@ -50,7 +54,38 @@ def contact(request):
 def shop(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
-    return render(request, 'shop.html', {})
+    products = product.objects.all()
+    context = {
+        'products': products
+    }
+    return render(request, 'shop.html', context)
+
+def men(request):
+    if not request.user.is_authenticated:
+        return redirect('/accounts/login')
+    products = product.objects.filter(catalog=1)
+    context = {
+        'products': products
+    }
+    return render(request, 'shop.html', context)
+
+def women(request):
+    if not request.user.is_authenticated:
+        return redirect('/accounts/login')
+    products = product.objects.filter(catalog=2)
+    context = {
+        'products': products
+    }
+    return render(request, 'shop.html', context)
+
+def children(request):
+    if not request.user.is_authenticated:
+        return redirect('/accounts/login')
+    products = product.objects.filter(catalog=3)
+    context = {
+        'products': products
+    }
+    return render(request, 'shop.html', context)
 
 def single(request):
     if not request.user.is_authenticated:
@@ -60,9 +95,6 @@ def single(request):
 def thankyou(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
-    myorder = order.objects.get(user=request.user)
-    myorder.count = myorder.count + 1
-    myorder.save()
     return render(request, 'thankyou.html', {})
 
 def orders(request):

@@ -22,23 +22,13 @@
                 <div class="d-flex">
                   <div class="dropdown mr-1 ml-md-auto">
                     <button type="button" class="btn btn-secondary btn-sm dropdown-toggle" id="dropdownMenuOffset" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      Latest
+                      All
                     </button>
                     <div class="dropdown-menu" aria-labelledby="dropdownMenuOffset">
-                      <a class="dropdown-item" href="#">Men</a>
-                      <a class="dropdown-item" href="#">Women</a>
-                      <a class="dropdown-item" href="#">Children</a>
-                    </div>
-                  </div>
-                  <div class="btn-group">
-                    <button type="button" class="btn btn-secondary btn-sm dropdown-toggle" id="dropdownMenuReference" data-toggle="dropdown">Reference</button>
-                    <div class="dropdown-menu" aria-labelledby="dropdownMenuReference">
-                      <a class="dropdown-item" href="#">Relevance</a>
-                      <a class="dropdown-item" href="#">Name, A to Z</a>
-                      <a class="dropdown-item" href="#">Name, Z to A</a>
-                      <div class="dropdown-divider"></div>
-                      <a class="dropdown-item" href="#">Price, low to high</a>
-                      <a class="dropdown-item" href="#">Price, high to low</a>
+                      <a class="dropdown-item" href="/shop">All</a>
+                      <a class="dropdown-item" href="/shop/men">Men</a>
+                      <a class="dropdown-item" href="/shop/women">Women</a>
+                      <a class="dropdown-item" href="/shop/children">Children</a>
                     </div>
                   </div>
                 </div>
@@ -46,56 +36,22 @@
             </div>
             <div class="row mb-5">
 
+              {% for product in products %}
               <div class="col-sm-6 col-lg-4 mb-4" data-aos="fade-up">
                 <div class="block-4 text-center border">
                   <figure class="block-4-image">
-                    <a href="/shop-single"><img src="{% static '/images/cloth_1.jpg' %}" alt="Image placeholder" class="img-fluid"></a>
+                    {% with product.pic as image_static %}
+                    <a href="/shop-single/{{product.pid}}"><img src="{% static image_static %}" alt="Image placeholder" class="img-fluid"></a>
+                    {% endwith %}
                   </figure>
                   <div class="block-4-text p-4">
-                    <h3><a href="/shop-single">Tank Top</a></h3>
-                    <p class="mb-0">Finding perfect t-shirt</p>
-                    <p class="text-primary font-weight-bold">$50</p>
+                    <h3><a href="/shop-single/{{product.pid}}">Product {{product.pid}}</a></h3>
+                    <p class="mb-0">{{product.description}}</p>
+                    <p class="text-primary font-weight-bold">${{product.price}}</p>
                   </div>
                 </div>
               </div>
-              <div class="col-sm-6 col-lg-4 mb-4" data-aos="fade-up">
-                <div class="block-4 text-center border">
-                  <figure class="block-4-image">
-                    <a href="/shop-single"><img src="{% static '/images/shoe_1.jpg' %}" alt="Image placeholder" class="img-fluid"></a>
-                  </figure>
-                  <div class="block-4-text p-4">
-                    <h3><a href="/shop-single">Corater</a></h3>
-                    <p class="mb-0">Finding perfect products</p>
-                    <p class="text-primary font-weight-bold">$50</p>
-                  </div>
-                </div>
-              </div>
-              <div class="col-sm-6 col-lg-4 mb-4" data-aos="fade-up">
-                <div class="block-4 text-center border">
-                  <figure class="block-4-image">
-                    <a href="/shop-single"><img src="{% static '/images/cloth_2.jpg' %}" alt="Image placeholder" class="img-fluid"></a>
-                  </figure>
-                  <div class="block-4-text p-4">
-                    <h3><a href="/shop-single">Polo Shirt</a></h3>
-                    <p class="mb-0">Finding perfect products</p>
-                    <p class="text-primary font-weight-bold">$50</p>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-sm-6 col-lg-4 mb-4" data-aos="fade-up">
-                <div class="block-4 text-center border">
-                  <figure class="block-4-image">
-                    <a href="/shop-single"><img src="{% static '/images/cloth_3.jpg' %}" alt="Image placeholder" class="img-fluid"></a>
-                  </figure>
-                  <div class="block-4-text p-4">
-                    <h3><a href="/shop-single">T-Shirt Mockup</a></h3>
-                    <p class="mb-0">Finding perfect products</p>
-                    <p class="text-primary font-weight-bold">$50</p>
-                  </div>
-                </div>
-              </div>
-
+              {% endfor %}
 
 
             </div>
@@ -105,49 +61,13 @@
             <div class="border p-4 rounded mb-4">
               <h3 class="mb-3 h6 text-uppercase text-black d-block">Categories</h3>
               <ul class="list-unstyled mb-0">
-                <li class="mb-1"><a href="#" class="d-flex"><span>Men</span> <span class="text-black ml-auto">(2,220)</span></a></li>
-                <li class="mb-1"><a href="#" class="d-flex"><span>Women</span> <span class="text-black ml-auto">(2,550)</span></a></li>
-                <li class="mb-1"><a href="#" class="d-flex"><span>Children</span> <span class="text-black ml-auto">(2,124)</span></a></li>
+                <li class="mb-1"><a href="/shop" class="d-flex"><span>All</span> <span class="text-black ml-auto">(4)</span></a></li>
+                <li class="mb-1"><a href="/shop/men" class="d-flex"><span>Men</span> <span class="text-black ml-auto">(2)</span></a></li>
+                <li class="mb-1"><a href="/shop/women" class="d-flex"><span>Women</span> <span class="text-black ml-auto">(1)</span></a></li>
+                <li class="mb-1"><a href="/shop/children" class="d-flex"><span>Children</span> <span class="text-black ml-auto">(1)</span></a></li>
               </ul>
             </div>
 
-            <div class="border p-4 rounded mb-4">
-              <div class="mb-4">
-                <h3 class="mb-3 h6 text-uppercase text-black d-block">Filter by Price</h3>
-                <div id="slider-range" class="border-primary"></div>
-                <input type="text" name="text" id="amount" class="form-control border-0 pl-0 bg-white" disabled="" />
-              </div>
-
-              <div class="mb-4">
-                <h3 class="mb-3 h6 text-uppercase text-black d-block">Size</h3>
-                <label for="s_sm" class="d-flex">
-                  <input type="checkbox" id="s_sm" class="mr-2 mt-1"> <span class="text-black">Small (2,319)</span>
-                </label>
-                <label for="s_md" class="d-flex">
-                  <input type="checkbox" id="s_md" class="mr-2 mt-1"> <span class="text-black">Medium (1,282)</span>
-                </label>
-                <label for="s_lg" class="d-flex">
-                  <input type="checkbox" id="s_lg" class="mr-2 mt-1"> <span class="text-black">Large (1,392)</span>
-                </label>
-              </div>
-
-              <div class="mb-4">
-                <h3 class="mb-3 h6 text-uppercase text-black d-block">Color</h3>
-                <a href="#" class="d-flex color-item align-items-center" >
-                  <span class="bg-danger color d-inline-block rounded-circle mr-2"></span> <span class="text-black">Red (2,429)</span>
-                </a>
-                <a href="#" class="d-flex color-item align-items-center" >
-                  <span class="bg-success color d-inline-block rounded-circle mr-2"></span> <span class="text-black">Green (2,298)</span>
-                </a>
-                <a href="#" class="d-flex color-item align-items-center" >
-                  <span class="bg-info color d-inline-block rounded-circle mr-2"></span> <span class="text-black">Blue (1,075)</span>
-                </a>
-                <a href="#" class="d-flex color-item align-items-center" >
-                  <span class="bg-primary color d-inline-block rounded-circle mr-2"></span> <span class="text-black">Purple (1,075)</span>
-                </a>
-              </div>
-
-            </div>
           </div>
         </div>
 
@@ -161,7 +81,7 @@
                 </div>
                 <div class="row">
                   <div class="col-sm-6 col-md-6 col-lg-4 mb-4 mb-lg-0" data-aos="fade" data-aos-delay="">
-                    <a class="block-2-item" href="#">
+                    <a class="block-2-item" href="/shop/women">
                       <figure class="image">
                         <img src="{% static '/images/women.jpg' %}" alt="" class="img-fluid">
                       </figure>
@@ -172,7 +92,7 @@
                     </a>
                   </div>
                   <div class="col-sm-6 col-md-6 col-lg-4 mb-5 mb-lg-0" data-aos="fade" data-aos-delay="100">
-                    <a class="block-2-item" href="#">
+                    <a class="block-2-item" href="/shop/children">
                       <figure class="image">
                         <img src="{% static '/images/children.jpg' %}" alt="" class="img-fluid">
                       </figure>
@@ -183,7 +103,7 @@
                     </a>
                   </div>
                   <div class="col-sm-6 col-md-6 col-lg-4 mb-5 mb-lg-0" data-aos="fade" data-aos-delay="200">
-                    <a class="block-2-item" href="#">
+                    <a class="block-2-item" href="/shop/men">
                       <figure class="image">
                         <img src="{% static '/images/men.jpg' %}" alt="" class="img-fluid">
                       </figure>
