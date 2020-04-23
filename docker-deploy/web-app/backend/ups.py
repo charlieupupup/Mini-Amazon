@@ -8,7 +8,7 @@ send request to ups
 """
 
 
-class ComUPS(Base):
+class UPS(Base):
     """
     send
     """
