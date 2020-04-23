@@ -51,7 +51,7 @@ class World(Base):
         res = world_amazon_pb2.AConnected()
         res.ParseFromString(raw_byte)
         print(res.result)
-        return res.worldid
+        assert world_id == res.worldid
 
     """
     normal
@@ -140,99 +140,63 @@ class World(Base):
         command
         """
 
-    def put_on_truck(self, package, seq_num):
+        def put_on_truck(self, package, seq_num):
 
-        command = world_amazon_pb2.ACommands()
-        command.simspeed = SIMSPEED
-        pack = command.load.add()
-        pack.whnum = package.whnum
-        pack.shipid = package.ship_id
-        pack.truckid = package.truck_id
-        pack.seq = seq_num
+            command = world_amazon_pb2.ACommands()
+            command.simspeed = SIMSPEED
+            pack = command.load.add()
+            pack.whnum = package.whnum
+            pack.shipid = package.ship_id
+            pack.truckid = package.truck_id
+            pack.seq = seq_num
 
-        # send the info
-        self.send(command)
+            # send the info
+            self.send(command)
 
-        # check for ack
-        self.recv()
+            # check for ack
+            self.recv()
 
-    def to_pack(self, product, seq_num, ship_id):
-        command = world_amazon_pb2.ACommands()
-        command.simspeed = SIMSPEED
-        # filling info of topack
-        # type: Apack
-        pack = command.topack.add()
+        def to_pack(self, product, seq_num, ship_id):
+            command = world_amazon_pb2.ACommands()
+            command.simspeed = SIMSPEED
+            # filling info of topack
+            # type: Apack
+            pack = command.topack.add()
 
-        pack.whnum = 0
+            pack.whnum = 0
 
-        # fill things field
-        p = pack.things.add()
-        p.id = product.product_id
-        p.description = product.description
-        p.count = product.quantity
+            # fill things field
+            p = pack.things.add()
+            p.id = product.product_id
+            p.description = product.description
+            p.count = product.quantity
 
-        pack.shipid = ship_id
-        pack.seqnum = seq_num
-        self.send(command, HOST_WORLD, PORT_WORLD)
+            pack.shipid = ship_id
+            pack.seqnum = seq_num
+            self.send(command, HOST_WORLD, PORT_WORLD)
 
-    def purchase(self, product):
-        command = world_amazon_pb2.ACommands()
-        command.simspeed = SIMSPEED
+        def purchase(self, product):
+            command = world_amazon_pb2.ACommands()
+            command.simspeed = SIMSPEED
 
-        # populate buy
-        # type: APurchaseMore
-        purchase = command.buy.add()
-        purchase.whnum = 0
+            # populate buy
+            # type: APurchaseMore
+            purchase = command.buy.add()
+            purchase.whnum = 0
 
-        # populate things
-        # type: AProduct
-        p = purchase.things.add()
-        p.id = product.product_id
-        p.description = product.description
-        p.count = product.quantity
-        self.send(command, HOST_WORLD, PORT_WORLD)
+            # populate things
+            # type: AProduct
+            p = purchase.things.add()
+            p.id = product.product_id
+            p.description = product.description
+            p.count = product.quantity
+            self.send(command, HOST_WORLD, PORT_WORLD)
 
-    def world(self, msg):
-        if (len(msg) > 0):
-            response = world_amazon_pb2.AResponses()
-            response.ParseFromString(msg)
-            print(response)
-            # handle import new stock
-            for arrive in response.arrived:
-                things = arrive.things
-                for thing in things:
-                    products = Whstock.objects.filter(pid=thing.id)
-                    if len(products) != 0:
-                        products[0].count = products[0].count + thing.count
-                        products[0].save()
-                    else:
-                        # need to specify world id
-                        whstock = Whstock()
-                        whstock.hid = arrive.whnum
-                        whstock.pid = thing.id
-                        whstock.dsc = thing.description
-                        whstock.count = thing.count
-                        whstock.save()
+            products = Whstock.objects.filter(pid=thing.id)
 
-            for currReady in response.ready:
-                # save current state
-                trans = Transaction.objects.get(ship_id=currReady)
-                trans.ready = True
-                trans.save()
-                # connect to UPS
-                ups_handler = threading.Thread(
-                    target=self.process_Uresponse, args=(trans,))
-                ups_handler.start()
-                self.AUCommand(trans, 0)
-                print("first msg for UPS sent(to pickup)")
-                ups_handler.join()
+            whstock = Whstock()
 
-            # load info from sim
-            for load in response.loaded:
-                # save current state
-                trans = Transaction.objects.get(ship_id=load)
-                trans.loaded = True
-                trans.save()
-                # connect to UPS
-                self.AUCommand(trans, 1)
-                print("second msg for UPS sent(get load success from sim world)")
+            whstock.save()
+
+            ups_handler = threading.Thread(
+                target=self.process_Uresponse, args=(trans,))
