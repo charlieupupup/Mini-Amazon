@@ -9,6 +9,9 @@ from django.shortcuts import render, redirect
 from stock.models import stock, warehouse, product
 from order.models import order
 from order.forms import orderForm
+from backend.back import Back
+
+back = Back()
 
 def register(request):
     form = UserCreationForm

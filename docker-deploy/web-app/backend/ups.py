@@ -1,17 +1,18 @@
-import base
+from .base import Base
 import world_amazon_pb2
 import IG1_pb2
+from google.protobuf.internal.decoder import _DecodeVarint32
+from google.protobuf.internal.encoder import _VarintBytes
+import threading
 
-
-"""
-send request to ups
-"""
+HOST_UPS = ''
+PORT_UPS = 23456
 
 
 class ComUPS(Base):
-    """
-    send
-    """
+
+    def setWorld(self, world):
+        self.world = world
 
     def ups(self, trans, flag, HOST_UPS, PORT_UPS):
         command = IG1_pb2.IG1()

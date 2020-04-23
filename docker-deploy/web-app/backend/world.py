@@ -1,4 +1,4 @@
-import base
+from .base import Base
 import world_amazon_pb2
 import IG1_pb2
 
@@ -15,6 +15,9 @@ world
 
 
 class ComWorld(Base):
+    # set ups
+    def setUPS(self, ups):
+        self.ups = ups
     # init
     def init(self, raw_byte):
         msg = world_amazon_pb2.AConnected()
@@ -28,25 +31,28 @@ class ComWorld(Base):
         return msg
 
     # get world id
-    def init_world(self, world_sock, world_id, db):
+    def init_world(self, world_id):
         msg = world_amazon_pb2.AConnect()
         msg.isAmazon = True
 
         # todo: diff of world id
         if world_id == 0:
             # init warehouse
-            init_warehouse()
+            self.init_warehouse()
 
         if world_id > 0:
-            connMsg.worldid = world
+            msg.worldid = world_id
 
-        self.send(world_sock, msg)
+        self.send(msg)
 
         # wait for response
-        raw_byte = self.recv(world_sock)
+        raw_byte = self.recv()
         info = self.init(raw_byte)
-
+        print(info)
         return info.worldid
+
+    def init_warehouse(self):
+        return
 
     def ProcessURes(msg, wSock, aSock, db):
         print('Process UResponse...')
