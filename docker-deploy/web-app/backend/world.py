@@ -1,6 +1,6 @@
 from .base import Base
-import world_amazon_pb2
-import IG1_pb2
+from . import world_amazon_pb2
+from . import IG1_pb2
 
 HOST_WORLD = ''
 PORT_WORLD = 23456

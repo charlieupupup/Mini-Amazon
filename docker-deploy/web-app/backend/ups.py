@@ -1,6 +1,6 @@
 from .base import Base
-import world_amazon_pb2
-import IG1_pb2
+from . import world_amazon_pb2
+from . import IG1_pb2
 from google.protobuf.internal.decoder import _DecodeVarint32
 from google.protobuf.internal.encoder import _VarintBytes
 import threading
