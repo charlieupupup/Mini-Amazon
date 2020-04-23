@@ -22,16 +22,21 @@ class Base():
             s.sendall(_VarintBytes(size))
             s.sendall(data_string)
 
-    def recv(self):
-        # Brian
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as world_socket:
-            var_int_buff = []
+    def recv(self, HOST, PORT, sock):
+        all_data = b''
+        data = sock.recv(4)
+        if not data:
+            print('error: cannot recv raw byte')
+        data_len, new_pos = _DecodeVarint32(data, 0)
+        all_data += data[new_pos:]
 
-            while True:
-                buf = world_socket.recv(1)
-                var_int_buff += buf
-                msg_len, new_pos = _DecodeVarint32(var_int_buff, 0)
-                if new_pos != 0:
-                    break
-            whole_message = world_socket.recv(msg_len)
-            return whole_message
+        data_left = data_len - len(all_data)
+        while True:
+            data = sock.recv(data_left)
+            all_data += data
+            data_left -= len(data)
+
+            if data_left <= 0:
+                break
+
+        return all_data

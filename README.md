@@ -8,4 +8,8 @@
 
 ## [proto](https://docs.google.com/document/d/1nDxoA-c2WotzFlN2hpPhzbN9eMS5ylgcCMo8DW-Btp4/edit?usp=sharing)
 
+## port
 
+world(amazon) : 23456
+
+group1: 33333
