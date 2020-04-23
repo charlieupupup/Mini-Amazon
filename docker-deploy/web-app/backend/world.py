@@ -27,28 +27,26 @@ class ComWorld(Base):
         msg.ParseFromString(raw_byte)
         return msg
 
-    # init connect & set world id
+    # get world id
+    def init_world(self, world_sock, world_id, db):
+        msg = world_amazon_pb2.AConnect()
+        msg.isAmazon = True
 
-    def GetWorld(wSock, world, db):
-        connMsg = wupb.UConnect()
-        connMsg.isAmazon = False
-        if world == 0:
-            num_truck = 100
-            # store trucks in database while put it in connMsg
-            for i in range(num_truck):
-                t = connMsg.trucks.add()
-                t.id = i
-                t.x = 99
-                t.y = 99
-                Inserttruck(db, i, 'idle')
+        # todo: diff of world id
+        if world_id == 0:
+            # init warehouse
+            init_warehouse()
 
-        if world > 0:
+        if world_id > 0:
             connMsg.worldid = world
 
-        Send(wSock, connMsg)
-        res = URecv(wSock, True)
+        self.send(world_sock, msg)
 
-        return res.worldid
+        # wait for response
+        raw_byte = self.recv(world_sock)
+        info = self.init(raw_byte)
+
+        return info.worldid
 
     def ProcessURes(msg, wSock, aSock, db):
         print('Process UResponse...')
