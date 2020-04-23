@@ -11,203 +11,134 @@ SIMSPEED = 100
 world
 """
 
-# normal communication
 
-
-class ComWorld(Base):
-    # set ups
-    def setUPS(self, ups):
-        self.ups = ups
-    # init
-    def init(self, raw_byte):
-        msg = world_amazon_pb2.AConnected()
-        msg.ParseFromString(raw_byte)
-        return msg
-
-    # normal communication
-    def normal(self, raw_byte):
-        msg = world_amazon_pb2.AResponses()
-        msg.ParseFromString(raw_byte)
-        return msg
-
-    # get world id
-    def init_world(self, world_id):
-        msg = world_amazon_pb2.AConnect()
-        msg.isAmazon = True
-
-        # todo: diff of world id
-        if world_id == 0:
-            # init warehouse
-            self.init_warehouse()
-
-        if world_id > 0:
-            msg.worldid = world_id
-
-        self.send(msg)
-
-        # wait for response
-        raw_byte = self.recv()
-        info = self.init(raw_byte)
-        print(info)
-        return info.worldid
+class World(Base):
+    """
+    init
+    """
+    # init warehouse
 
     def init_warehouse(self):
-        return
+        pass
 
-    def ProcessURes(msg, wSock, aSock, db):
-        print('Process UResponse...')
-        print(msg)
-        global SeqNum
-        toAmazonEmpty = True
-        toWorldEmpty = True
+    def init(self, world_id=0):
+        """
+        message AConnect{
+            optional int64 worldid = 1;
+            repeated AInitWarehouse initwh = 2;
+            required bool isAmazon = 3;
+            }
 
-        # Prepare UCommand & UCommunicate
-        ToWorld = wupb.UCommands()
-        ToAmazon = uapb.UCommunicate()
+        """
+        msg_init = world_amazon_pb2.AConnect()
+        msg.worldid = world_id
+        msg.initwh = self.init_warehouse()
+        msg_init.isAmazon = True
 
-        # check for UFinished
-        print('Looking into UFinished msg')
-        for ufin in msg.completions:
-            toWorldEmpty = False
+        self.send(msg_init)
 
-            # Add ACK
-            ToWorld.acks.append(ufin.seqnum)
+        # wait for response
+        """
+        message AConnected{
+            required int64 worldid= 1;
+            required string result = 2;
+            }
+        """
+        raw_byte = self.recv()
+        res = world_amazon_pb2.AConnected()
+        res.ParseFromString(raw_byte)
+        print(res.result)
+        return res.worldid
 
-            # Check ufinished status, notify amazon
-            # first check whether this ufin has been processed before
-            entry = Wrecvseq(db, ufin.seqnum)
-            if entry:
-                continue
+    """
+    normal
+    """
 
-            # record the seqnum from World
-            Insertwrecv(db, ufin.seqnum)
+    """
+    message AResponses {
+        repeated APurchaseMore arrived = 1;
+        repeated APacked ready = 2; 
+        repeated ALoaded loaded = 3; 
+        optional bool finished = 4;
+        repeated AErr error = 5;
+        repeated int64 acks = 6;
+        repeated APackage packagestatus = 7;
+        }
+    """
 
-            if ufin.status == 'ARRIVE WAREHOUSE':
-                toAmazonEmpty = False
-                print('notify amazon')
-                arrive = ToAmazon.uarrived.add()
-                arrive.truckid = ufin.truckid
-                with seq_lock:
-                    arrive.seqnum = SeqNum
-                    SeqNum += 1
-                Insertusend(db, arrive.seqnum,
-                            arrive.SerializeToString(), 'UArrivedAtWarehouse')
-                Truckstatus(db, ufin.truckid, 'loading')
+    def normal(self, raw_byte, seq=0):
+        msg = world_amazon_pb2.AResponses()
+        msg.ParseFromString(raw_byte)
 
-            elif ufin.status == 'IDLE':
-                print('dont need notify, notify in delivered')
-                # update truck status in database to idle
-                Truckstatus(db, ufin.truckid, 'idle')
+        # possible info send to world & ups
+        info_world = world_amazon_pb2.ACommands()
+        info_ups = IG1_pb2.AMsg()
 
-        # check for UDeliveryMade
-        print('Looking into UDeliveryMade Msg...')
-        for udel in msg.delivered:
-            toWorldEmpty = False
-            toAmazonEmpty = False
+        # parse info in msg
+        # arrived
+        for arr in msg.arrived:
+            # warehouse num
+            wh_num = arr.whnum
 
-            # Add ACK
-            ToWorld.acks.append(udel.seqnum)
+            # Aproduct
+            for p in arr.things:
+                idx = p.id
+                des = p.description
+                cnt = p.count
 
-            #  first check whether this udel has been processed before
-            if Checkdelivered(db, udel.packageid):
-                continue
+            # ack
+            info_world.acks.append(arr.seqnum)
 
-            # send out notification email
-            SendEmail(db, udel.packageid)
+        self.send(info_world)
 
-            # record the seqnum from World
-            Insertwrecv(db, udel.seqnum)
+        # repeated APacked ready
+        for r in msg.ready:
+            """
+            message APacked {
+            required int64 shipid = 1;
+            required int64 seqnum = 2;
+            }
+            """
+            # ship id
+            ship_id = r.shipid
 
-            # update delivery status for package in db, send to amazon
-            delivered = ToAmazon.udelivered.add()
-            delivered.packageid = udel.packageid
-            Packagestatus(db, udel.packageid, 'delivered')
-            Truckamount(db, udel.truckid, False)
+            # ack
+            info_world.acks.append(r.seqnum)
 
-            # record this MSG in database
-            with seq_lock:
-                delivered.seqnum = SeqNum
-                Insertusend(db, SeqNum, delivered.SerializeToString(),
-                            'UPackageDelivered')
-                SeqNum += 1
+        # repeated ALoaded loaded
+        for l in msg.loaded:
+            """
+            message ALoaded{
+            required int64 shipid = 1;
+            required int64 seqnum = 2;
+            }
+            """
+            sid = l.shipid
+            seq = l.seqnum
 
-        # add ack for truckstatus, if any
-        for utruck in msg.truckstatus:
-            toWorldEmpty = False
-            # Add ACK
-            ToWorld.acks.append(utruck.seqnum)
-            UpdatePackagePos(db, utruck.truckid, utruck.x, utruck.y)
+        # repeated int64 acks
+        for a in msg.acks:
+            dict.pop(a, None)
 
-        # Check the acks field, delete those in UPS seqnum table
-        for ACK in msg.acks:
-            Deleteusend(db, ACK)
+        # repeated APackage packagestatus = 7;
+        for pkg in msg.packagestatus:
+            """
+            message APackage{
+            required int64 packageid =1;
+            required string status = 2;
+            required int64 seqnum = 3;
+            }
+            """
+            pkg_id = pkg.packageid
+            s = pkg.status
+            seq = pkg.seqnum
 
-        # Send ACK to World & updates to Amazon
-        if not toWorldEmpty:
-            Send(wSock, ToWorld)
-        if not toAmazonEmpty:
-            Send(aSock, ToAmazon)
+        """
+        command
+        """
 
-    # Resend msg whose ACK is missing
+        def put_on_truck(self, package, seq_num):
 
-    def PacketDrop(wSock, aSock, db):
-        print('check seqnum table every 30s, resend all those request/ACK')
-
-        while True:
-            time.sleep(30)
-            print('start to check ack')
-            with db_lock:
-                cur = db.cursor()
-                sql = 'SELECT * FROM usend'
-                cur.execute(sql)
-                row = cur.fetchone()
-
-            ToWorld = wupb.UCommands()
-            ToAmazon = uapb.UCommunicate()
-            ToWorld_empty = True
-            ToAmazon_empty = True
-
-            while row:
-                with db_lock:
-                    # TOCHECK: distinguish what type of Msg, add to ToWorld or ToAmazon
-                    if row[2] == 'UGoPickup':
-                        print('resend UGoPickup')
-                        tp = ToWorld.pickups.add()
-                        ToWorld_empty = False
-                    elif row[2] == 'UGoDeliver':
-                        print('resend UGoDeliver')
-                        tp = ToWorld.deliveries.add()
-                        ToWorld_empty = False
-                    elif row[2] == 'UQuery':
-                        print('resend UQuery')
-                        tp = ToWorld.queries.add()
-                        ToWorld_empty = False
-                    elif row[2] == 'UOrderPlaced':
-                        print('resend UOrderPlaced')
-                        tp = ToAmazon.uorderplaced.add()
-                        ToAmazon_empty = False
-                    elif row[2] == 'UArrivedAtWarehouse':
-                        print('resend UArrivedAtwarehouse')
-                        tp = ToAmazon.uarrived.add()
-                        ToAmazon_empty = False
-                    elif row[2] == 'UPackageDelivered':
-                        print('resend UPackageDelivered')
-                        tp = ToAmazon.udelivered.add()
-                        ToAmazon_empty = False
-
-                    tp.ParseFromString(row[1])
-                    row = cur.fetchone()
-
-            if not ToWorld_empty:
-                Send(wSock, ToWorld)
-            else:
-                print('world empty')
-            if not ToAmazon_empty:
-                Send(aSock, ToAmazon)
-            else:
-                print('amazon empty')
-
-        def world_put_on_truck(self, package, seq_num, HOST_WORLD, PORT_WORLD):
             command = world_amazon_pb2.ACommands()
             command.simspeed = SIMSPEED
             pack = command.load.add()
@@ -217,12 +148,12 @@ class ComWorld(Base):
             pack.seq = seq_num
 
             # send the info
-            self.send(command, HOST_WORLD, PORT_WORLD)
+            self.send(command)
 
             # check for ack
-            self.recv(HOST_WORLD, PORT_WORLD)
+            self.recv()
 
-        def world_to_pack(self, product, seq_num, ship_id):
+        def to_pack(self, product, seq_num, ship_id):
             command = world_amazon_pb2.ACommands()
             command.simspeed = SIMSPEED
             # filling info of topack
@@ -241,7 +172,7 @@ class ComWorld(Base):
             pack.seqnum = seq_num
             self.send(command, HOST_WORLD, PORT_WORLD)
 
-        def world_purchase(self, product):
+        def purchase(self, product):
             command = world_amazon_pb2.ACommands()
             command.simspeed = SIMSPEED
 
@@ -259,7 +190,6 @@ class ComWorld(Base):
             self.send(command, HOST_WORLD, PORT_WORLD)
 
         def world(self, msg):
-
             if (len(msg) > 0):
                 response = world_amazon_pb2.AResponses()
                 response.ParseFromString(msg)
@@ -280,13 +210,7 @@ class ComWorld(Base):
                             whstock.dsc = thing.description
                             whstock.count = thing.count
                             whstock.save()
-                # handle pack ready response
-                # when ready send AU command to let UPS truck pickup,
-                # use another thread for wait for UPS response
-                # when receive response send ALoad command
-                # when reveived loaded for Sim send AU command and let flag = 1;
-                # tell UPS packages is ready and ask for trucks (provide destinaiton address)
-                # tell warehouse to load when UPS trucks ready
+
                 for currReady in response.ready:
                     # save current state
                     trans = Transaction.objects.get(ship_id=currReady)

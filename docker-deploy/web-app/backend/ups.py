@@ -9,7 +9,10 @@ HOST_UPS = ''
 PORT_UPS = 23456
 
 
-class ComUPS(Base):
+class UPS(Base):
+    """
+    send
+    """
 
     def setWorld(self, world):
         self.world = world
