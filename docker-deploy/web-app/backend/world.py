@@ -2,10 +2,9 @@ from .base import Base
 from . import world_amazon_pb2
 from . import IG1_pb2
 
-HOST_WORLD = ''
-PORT_WORLD = 23456
+from ..stock.models import stock, product
+from ..order.models import order
 
-SIMSPEED = 100
 
 """
 world
@@ -53,8 +52,11 @@ class World(Base):
         print(res.result)
         assert world_id == res.worldid
 
+        ups_handler = threading.Thread(
+            target=self.process_Uresponse, args=(trans,))
+
     """
-    normal
+    handler
     """
 
     """
@@ -69,9 +71,13 @@ class World(Base):
         }
     """
 
-    def normal(self, raw_byte, seq=0):
+    def handler(self, raw_byte, dict):
         msg = world_amazon_pb2.AResponses()
         msg.ParseFromString(raw_byte)
+
+        whstock = Whstock()
+
+        whstock.save()
 
         # possible info send to world & ups
         info_world = world_amazon_pb2.ACommands()
@@ -140,10 +146,19 @@ class World(Base):
         command
         """
 
+        """
+        message APutOnTruck{
+            required int32 whnum = 1;
+            required int32 truckid = 2;
+            required int64 shipid = 3;
+            required int64 seqnum = 4;
+            }
+        """
+
         def put_on_truck(self, package, seq_num):
 
             command = world_amazon_pb2.ACommands()
-            command.simspeed = SIMSPEED
+            command.simspeed = self.simspeed
             pack = command.load.add()
             pack.whnum = package.whnum
             pack.shipid = package.ship_id
@@ -153,50 +168,63 @@ class World(Base):
             # send the info
             self.send(command)
 
-            # check for ack
-            self.recv()
+        """
+        message APack{
+            required int32 whnum = 1;
+            repeated AProduct things = 2;
+            required int64 shipid = 3;
+            required int64 seqnum = 4;
+            }
+        """
 
-        def to_pack(self, product, seq_num, ship_id):
+        def pack(self, order_id, seq_num):
             command = world_amazon_pb2.ACommands()
-            command.simspeed = SIMSPEED
+            command.simspeed = self.simspeed
             # filling info of topack
             # type: Apack
             pack = command.topack.add()
 
-            pack.whnum = 0
+            curr_order = order.objects.filter()
+
+            pack.whnum = curr_order.whid
 
             # fill things field
             p = pack.things.add()
-            p.id = product.product_id
+
+            product = product.objects.filter(pid=curr_order.pid)
+            p.id = curr_order.pid
             p.description = product.description
             p.count = product.quantity
 
             pack.shipid = ship_id
             pack.seqnum = seq_num
-            self.send(command, HOST_WORLD, PORT_WORLD)
+            self.send(command)
 
-        def purchase(self, product):
+        """
+        message APurchaseMore{
+            required int32 whnum = 1;
+            repeated AProduct things = 2;
+            required int64 seqnum = 3;
+            }
+        """
+
+        def purchase_more(self, product_id, wh_num, seq_num):
             command = world_amazon_pb2.ACommands()
-            command.simspeed = SIMSPEED
+            command.simspeed = self.simspeed
 
             # populate buy
             # type: APurchaseMore
             purchase = command.buy.add()
-            purchase.whnum = 0
+            purchase.whnum = wh_num
 
             # populate things
             # type: AProduct
             p = purchase.things.add()
+
+            product = stock.objects.filter(pid=product_id)
             p.id = product.product_id
             p.description = product.description
             p.count = product.quantity
-            self.send(command, HOST_WORLD, PORT_WORLD)
 
-            products = Whstock.objects.filter(pid=thing.id)
-
-            whstock = Whstock()
-
-            whstock.save()
-
-            ups_handler = threading.Thread(
-                target=self.process_Uresponse, args=(trans,))
+            purchase.seqnum = seq_num
+            self.send(command)

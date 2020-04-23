@@ -11,9 +11,10 @@ mainly for encode & decode
 
 
 class Base():
-    def __init__(self, host, port):
+    def __init__(self, host, port, simspeed):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((host, port))
+        self.simspeed = simspeed
 
     def __del__(self):
         self.socket.close()
