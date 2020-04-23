@@ -104,11 +104,12 @@ def thankyou(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
     form = orderForm(request.POST or None)
-    if form.is_valid():
+    if not form.is_valid():
+        return redirect('/invalid')
+    else:
+
         form.save()
         return render(request, 'thankyou.html', {})
-    else:
-        return redirect('/invalid')
 
 def invalid(request):
     if not request.user.is_authenticated:

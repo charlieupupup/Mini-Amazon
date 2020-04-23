@@ -10,7 +10,7 @@ class order(models.Model):
     pkgid = models.IntegerField(default=-1) # package id & Tracking num & Ship id
     pid = models.IntegerField(default=-1, verbose_name='Product ID')  # product id
     count = models.IntegerField(default=-1, verbose_name='Product Count')  # product quantity
-    whid = models.IntegerField(default=-1)  # warehouse id
+    whid = models.IntegerField(default=0)  # warehouse id
     truckid = models.IntegerField(default=-1) # truck id
     arrived = models.BooleanField(default=False)
     ready = models.BooleanField(default=False)

@@ -15,7 +15,7 @@ message UMsg{
             repeated UOrderPlaced uorderplaced = 1;                  
             repeated UTruckArrived utruckarrived = 2; // Truck arrived at the warehouse          
             repeated UPkgDelivered upkgdelivered = 3; // Package delivered
-optional UInitialWorld initworld = 4;             
+            optional UInitialWorld initworld = 4;
             repeated int64 acks = 5;                              
 }
 

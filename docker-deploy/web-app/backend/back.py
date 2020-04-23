@@ -1,5 +1,5 @@
-from .ups import ComUPS
-from .world import ComWorld
+from .ups import UPS
+from .world import World
 
 HOST_UPS = 'vcm-12423.vm.duke.edu'
 PORT_UPS = 33333
@@ -11,11 +11,12 @@ SIMSPEED = 100
 
 class Back:
     def __init__(self):
-        # self.ups = ComUPS(HOST_UPS, PORT_UPS)
-        self.world = ComWorld(HOST_WORLD, PORT_WORLD)
-        # self.ups.setWorld(self.world)
-        # self.world.setUPS(self.ups)
-        self.world.init_world(0)
+        self.ups = UPS(HOST_UPS, PORT_UPS)
+        self.world = World(HOST_WORLD, PORT_WORLD)
+        self.ups.setWorld(self.world)
+        self.world.setUPS(self.ups)
+        self.ups.init()
+        self.world.init()
 
 # # email set up
 # smtp_server = "smtp.gmail.com"
