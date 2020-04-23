@@ -12,6 +12,4 @@ class order(models.Model):
     count = models.IntegerField(default=-1, verbose_name='Product Count')  # product quantity
     whid = models.IntegerField(default=0)  # warehouse id
     truckid = models.IntegerField(default=-1) # truck id
-    arrived = models.BooleanField(default=False)
-    ready = models.BooleanField(default=False)
-    loaded = models.BooleanField(default=False)
+    status = models.CharField(max_length=100, default="", blank=True)
