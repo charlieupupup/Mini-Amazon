@@ -6,8 +6,9 @@ from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 
-from stock.models import stock, warehouse
+from stock.models import stock, warehouse, product
 from order.models import order
+from order.forms import orderForm
 
 def register(request):
     form = UserCreationForm
@@ -25,7 +26,11 @@ def signup(request):
 def home(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
-    return render(request, 'index.html', {})
+    products = product.objects.all()
+    context = {
+        'products': products
+    }
+    return render(request, 'index.html', context)
 
 def cart(request):
     if not request.user.is_authenticated:
@@ -40,7 +45,11 @@ def about(request):
 def checkout(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
-    return render(request, 'checkout.html', {})
+    form = orderForm(initial={'user': request.user})
+    context = {
+        'form': form
+    }
+    return render(request, 'checkout.html', context)
 
 def contact(request):
     if not request.user.is_authenticated:
@@ -50,7 +59,38 @@ def contact(request):
 def shop(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
-    return render(request, 'shop.html', {})
+    products = product.objects.all()
+    context = {
+        'products': products
+    }
+    return render(request, 'shop.html', context)
+
+def men(request):
+    if not request.user.is_authenticated:
+        return redirect('/accounts/login')
+    products = product.objects.filter(catalog=1)
+    context = {
+        'products': products
+    }
+    return render(request, 'shop.html', context)
+
+def women(request):
+    if not request.user.is_authenticated:
+        return redirect('/accounts/login')
+    products = product.objects.filter(catalog=2)
+    context = {
+        'products': products
+    }
+    return render(request, 'shop.html', context)
+
+def children(request):
+    if not request.user.is_authenticated:
+        return redirect('/accounts/login')
+    products = product.objects.filter(catalog=3)
+    context = {
+        'products': products
+    }
+    return render(request, 'shop.html', context)
 
 def single(request):
     if not request.user.is_authenticated:
@@ -60,7 +100,22 @@ def single(request):
 def thankyou(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
-    return render(request, 'thankyou.html', {})
+    form = orderForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        return render(request, 'thankyou.html', {})
+    else:
+        return redirect('/invalid')
+
+def invalid(request):
+    if not request.user.is_authenticated:
+        return redirect('/accounts/login')
+    form = orderForm(request.POST or None)
+    context = {
+        'msg': "Invalid input, please try again",
+        'form': form
+    }
+    return render(request, 'checkout.html', context)
 
 def orders(request):
     if not request.user.is_authenticated:
