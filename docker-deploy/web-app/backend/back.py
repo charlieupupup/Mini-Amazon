@@ -11,12 +11,12 @@ SIMSPEED = 100
 
 class Back:
     def __init__(self):
-        self.ups = UPS(HOST_UPS, PORT_UPS)
+        # self.ups = UPS(HOST_UPS, PORT_UPS)
         self.world = World(HOST_WORLD, PORT_WORLD)
-        self.ups.setWorld(self.world)
-        self.world.setUPS(self.ups)
-        self.ups.init()
-        self.world.init()
+        # self.ups.setWorld(self.world)
+        # self.world.setUPS(self.ups)
+        # self.ups.init()
+        # self.world.init()
 
 # # email set up
 # smtp_server = "smtp.gmail.com"
