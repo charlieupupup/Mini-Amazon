@@ -94,7 +94,6 @@ class World(Base):
 
     def res_arr(self, msg):
         info_world = self.header()
-
         # arrived
         for arr in msg.arrived:
             # warehouse num
@@ -160,8 +159,17 @@ class World(Base):
         for a in msg.acks:
             dict.pop(a, None)
 
+    """
+    message AErr{
+        required string err = 1;
+        required int64 originseqnum = 2;
+        required int64 seqnum = 3;
+        }
+    """
+
     def res_err(self, msg):
-        pass
+        for e in msg.error:
+            print(e.err)
 
     def res_pkgsts(self, msg):
         info_world = self.header()
