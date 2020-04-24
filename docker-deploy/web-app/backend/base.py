@@ -5,6 +5,7 @@ import threading
 #encode & decode
 from google.protobuf.internal.decoder import _DecodeVarint32
 from google.protobuf.internal.encoder import _VarintBytes
+from google.protobuf.internal.encoder import _EncodeVarint
 
 """
 Base class for communication
@@ -29,29 +30,19 @@ class Base():
         self.socket.close()
 
     def send(self, msg):
-        data_string = msg.SerializeToString()
-        size = msg.ByteSize()
-        self.socket.sendall(_VarintBytes(size))
-        self.socket.sendall(data_string)
+        _EncodeVarint(self.socket.send, len(msg), None)
+        self.socket.send(msg)
 
     def recv(self):
-        all_data = b''
-        data = self.socket.recv(4)
-        if not data:
-            print('error: cannot recv raw byte')
-        data_len, new_pos = _DecodeVarint32(data, 0)
-        all_data += data[new_pos:]
-
-        data_left = data_len - len(all_data)
+        var_int_buff = []
         while True:
-            data = self.socket.recv(data_left)
-            all_data += data
-            data_left -= len(data)
-
-            if data_left <= 0:
+            buf = self.socket.recv(1)
+            var_int_buff += buf
+            msg_len, new_pos = _DecodeVarint32(var_int_buff, 0)
+            if new_pos != 0:
                 break
-
-        return all_data
+        whole_message = self.socket.recv(msg_len)
+        return whole_message
 
     # resend the seq num in seq_dict
     def resend(self):
