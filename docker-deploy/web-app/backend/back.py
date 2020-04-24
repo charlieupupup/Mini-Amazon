@@ -11,12 +11,12 @@ SIMSPEED = 100
 
 class Back:
     def __init__(self):
-        # self.ups = UPS(HOST_UPS, PORT_UPS, SIMSPEED)
+        self.ups = UPS(HOST_UPS, PORT_UPS, SIMSPEED)
         self.world = World(HOST_WORLD, PORT_WORLD, SIMSPEED)
-        # self.ups.setWorld(self.world)
-        # self.world.setUPS(self.ups)
-        # self.ups.init()
-        self.world.init(0)
+        self.ups.setWorld(self.world)
+        self.world.setUPS(self.ups)
+        self.ups.init()
+        # self.world.init(0)
 
     def buy(self, pid, whid, count):
         self.world.purchase_more(pid, whid, count)

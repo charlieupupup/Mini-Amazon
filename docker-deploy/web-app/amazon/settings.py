@@ -25,7 +25,7 @@ SECRET_KEY = 'z3#^lfc74fjnp-*emfrhbmjt#g(wd(sf8ovt6o0mqnjim6l*-p'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['web', 'localhost']
+ALLOWED_HOSTS = ['web']
 
 
 # Application definition
