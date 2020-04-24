@@ -19,6 +19,7 @@ class UPS(Base):
         # send back
         msg_init = IG1_pb2.AMsg()
         msg_init.acks.append(msg.initworld.seq)
+        print(msg_init)
         self.send(msg_init)
         # tell world
         self.world.init(msg.initworld.worldid)
