@@ -131,7 +131,7 @@ class World(Base):
             # ship id
             ship_id = r.shipid
 
-            # TODO call ups
+            self.ups.sendTruck(ship_id)
 
             # ack
             info_world.acks.append(r.seqnum)
@@ -151,7 +151,7 @@ class World(Base):
             sid = l.shipid
             seq = l.seqnum
 
-            # TODO call ups
+            self.ups.loaded(sid)
 
             info_world.acks.append(seq)
 
