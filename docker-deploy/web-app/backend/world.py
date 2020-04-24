@@ -2,14 +2,10 @@ from .base import Base
 from . import world_amazon_pb2
 from . import IG1_pb2
 
-HOST_WORLD = ''
-PORT_WORLD = 23456
+from ..stock.models import stock, product
+from ..order.models import order
 
-SIMSPEED = 100
-
-"""
-world
-"""
+import threading
 
 
 class World(Base):
@@ -18,7 +14,7 @@ class World(Base):
     """
     # init warehouse
 
-    def init_warehouse(self):
+    def init_warehouse(self, msg):
         pass
 
     def setUPS(self, ups):
@@ -35,7 +31,7 @@ class World(Base):
         """
         msg_init = world_amazon_pb2.AConnect()
         msg_init.worldid = world_id
-        msg_init.initwh = self.init_warehouse()
+        self.init_warehouse(msg_init)
         msg_init.isAmazon = True
 
         self.send(msg_init)
@@ -51,17 +47,31 @@ class World(Base):
         res = world_amazon_pb2.AConnected()
         res.ParseFromString(raw_byte)
         print(res.result)
-        return res.worldid
+        assert world_id == res.worldid
+
+        th_handler = threading.Thread(target=self.handler, args=())
+        th_handler.start()
+        th_handler.join()
 
     """
-    normal
+    handler
     """
+
+    def handler(self):
+        while True:
+            raw_byte = self.recv()
+            self.response(raw_byte)
+
+    def header(self):
+        command = world_amazon_pb2.ACommands()
+        command.simspeed = self.simspeed
+        return command
 
     """
     message AResponses {
         repeated APurchaseMore arrived = 1;
-        repeated APacked ready = 2; 
-        repeated ALoaded loaded = 3; 
+        repeated APacked ready = 2;
+        repeated ALoaded loaded = 3;
         optional bool finished = 4;
         repeated AErr error = 5;
         repeated int64 acks = 6;
@@ -69,15 +79,22 @@ class World(Base):
         }
     """
 
-    def normal(self, raw_byte, seq=0):
+    def response(self, raw_byte, dict):
+
         msg = world_amazon_pb2.AResponses()
         msg.ParseFromString(raw_byte)
 
-        # possible info send to world & ups
-        info_world = world_amazon_pb2.ACommands()
-        info_ups = IG1_pb2.AMsg()
-
         # parse info in msg
+        self.res_arr(msg)
+        self.res_rdy(msg)
+        self.res_load(msg)
+        self.res_err(msg)
+        self.res_ack(msg)
+        self.res_pkgsts(msg)
+
+    def res_arr(self, msg):
+        info_world = self.header()
+
         # arrived
         for arr in msg.arrived:
             # warehouse num
@@ -89,10 +106,17 @@ class World(Base):
                 des = p.description
                 cnt = p.count
 
+                curr_s = stock.objects.filter(pid=idx).filter(whid=wh_num)
+                curr_s[0].count += cnt
+                curr_s[0].save()
+
             # ack
             info_world.acks.append(arr.seqnum)
 
         self.send(info_world)
+
+    def res_rdy(self, msg):
+        info_world = self.header()
 
         # repeated APacked ready
         for r in msg.ready:
@@ -105,9 +129,15 @@ class World(Base):
             # ship id
             ship_id = r.shipid
 
+            # TODO call ups
+
             # ack
             info_world.acks.append(r.seqnum)
 
+        self.send(info_world)
+
+    def res_load(self, msg):
+        info_world = self.header()
         # repeated ALoaded loaded
         for l in msg.loaded:
             """
@@ -119,10 +149,22 @@ class World(Base):
             sid = l.shipid
             seq = l.seqnum
 
+            # TODO call ups
+
+            info_world.acks.append(seq)
+
+        self.send(info_world)
+
+    def res_ack(self, msg):
         # repeated int64 acks
         for a in msg.acks:
             dict.pop(a, None)
 
+    def res_err(self, msg):
+        pass
+
+    def res_pkgsts(self, msg):
+        info_world = self.header()
         # repeated APackage packagestatus = 7;
         for pkg in msg.packagestatus:
             """
@@ -136,103 +178,105 @@ class World(Base):
             s = pkg.status
             seq = pkg.seqnum
 
-        """
-        command
-        """
+            info_world.acks.append(seq)
 
-    def put_on_truck(self, package, seq_num):
+        self.send(info_world)
 
-        command = world_amazon_pb2.ACommands()
-        command.simspeed = SIMSPEED
+    """
+    command
+    """
+
+    """
+    message APutOnTruck{
+        required int32 whnum = 1;
+        required int32 truckid = 2;
+        required int64 shipid = 3;
+        required int64 seqnum = 4;
+        }
+    """
+
+    def put_on_truck(self, pkg_id, seq_num):
+        command = self.header()
         pack = command.load.add()
-        pack.whnum = package.whnum
-        pack.shipid = package.ship_id
-        pack.truckid = package.truck_id
+
+        curr_order = order.objects.filter(pkgid=pkg_id)
+        pack.whnum = curr_order.whid
+        pack.shipid = curr_order.pkgid
+        pack.truckid = curr_order.truckid
         pack.seq = seq_num
 
         # send the info
         self.send(command)
 
-        # check for ack
-        self.recv()
+    """
+    message AQuery{
+        required int64 packageid = 1;
+        required int64 seqnum = 2;
+        }
+    """
 
-    def to_pack(self, product, seq_num, ship_id):
-        command = world_amazon_pb2.ACommands()
-        command.simspeed = SIMSPEED
+    def query(self, pkg_id, seq_num):
+        command = self.header()
+        q = command.queries.add()
+        q.packageid = pkg_id
+        q.seqnum = seq_num
+
+        self.send(command)
+
+    """
+    message APack{
+        required int32 whnum = 1;
+        repeated AProduct things = 2;
+        required int64 shipid = 3;
+        required int64 seqnum = 4;
+        }
+    """
+
+    def pack(self, pkg_id, seq_num):
+        command = self.header()
         # filling info of topack
         # type: Apack
         pack = command.topack.add()
 
-        pack.whnum = 0
+        curr_order = order.objects.filter(pkgid=pkg_id)
+
+        pack.whnum = curr_order.whid
 
         # fill things field
         p = pack.things.add()
-        p.id = product.product_id
+
+        product = product.objects.filter(pid=curr_order.pid)
+        p.id = product.pid
         p.description = product.description
         p.count = product.quantity
 
-        pack.shipid = ship_id
+        pack.shipid = pkg_id
         pack.seqnum = seq_num
-        self.send(command, HOST_WORLD, PORT_WORLD)
+        self.send(command)
 
-    def purchase(self, product):
-        command = world_amazon_pb2.ACommands()
-        command.simspeed = SIMSPEED
+    """
+    message APurchaseMore{
+        required int32 whnum = 1;
+        repeated AProduct things = 2;
+        required int64 seqnum = 3;
+        }
+    """
 
+    def purchase_more(self, product_id, wh_num, seq_num):
+        command = self.header()
         # populate buy
         # type: APurchaseMore
         purchase = command.buy.add()
-        purchase.whnum = 0
+        purchase.whnum = wh_num
 
         # populate things
         # type: AProduct
         p = purchase.things.add()
+
+        product = stock.objects.filter(pid=product_id)
         p.id = product.product_id
         p.description = product.description
         p.count = product.quantity
-        self.send(command, HOST_WORLD, PORT_WORLD)
 
-    def world(self, msg):
-        if (len(msg) > 0):
-            response = world_amazon_pb2.AResponses()
-            response.ParseFromString(msg)
-            print(response)
-            # handle import new stock
-            for arrive in response.arrived:
-                things = arrive.things
-                for thing in things:
-                    products = Whstock.objects.filter(pid=thing.id)
-                    if len(products) != 0:
-                        products[0].count = products[0].count + thing.count
-                        products[0].save()
-                    else:
-                        # need to specify world id
-                        whstock = Whstock()
-                        whstock.hid = arrive.whnum
-                        whstock.pid = thing.id
-                        whstock.dsc = thing.description
-                        whstock.count = thing.count
-                        whstock.save()
-
-            for currReady in response.ready:
-                # save current state
-                trans = Transaction.objects.get(ship_id=currReady)
-                trans.ready = True
-                trans.save()
-                # connect to UPS
-                ups_handler = threading.Thread(
-                    target=self.process_Uresponse, args=(trans,))
-                ups_handler.start()
-                self.AUCommand(trans, 0)
-                print("first msg for UPS sent(to pickup)")
-                ups_handler.join()
-
-            # load info from sim
-            for load in response.loaded:
-                # save current state
-                trans = Transaction.objects.get(ship_id=load)
-                trans.loaded = True
-                trans.save()
-                # connect to UPS
-                self.AUCommand(trans, 1)
-                print("second msg for UPS sent(get load success from sim world)")
+        purchase.seqnum = seq_num
+        self.send(command)
