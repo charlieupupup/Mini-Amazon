@@ -1,5 +1,7 @@
 import socket
 import io
+import time
+import threading
 #encode & decode
 from google.protobuf.internal.decoder import _DecodeVarint32
 from google.protobuf.internal.encoder import _VarintBytes
@@ -15,9 +17,16 @@ class Base():
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((host, port))
         self.simspeed = simspeed
+        self.seq_num = 0
+        self.seq_dict = dict()
+
+        th_resend = threading.Thread(target=self.resend, args=())
+        th_resend.setDaemon(True)
+        th_resend.start()
 
     def __del__(self):
         self.socket.close()
+        self.th_resend.join()
 
     def send(self, msg):
         data_string = msg.SerializeToString()
@@ -43,3 +52,11 @@ class Base():
                 break
 
         return all_data
+
+    # resend the seq num in seq_dict
+    def resend(self):
+        while True:
+            time.sleep(10)
+
+            for k in self.seq_dict:
+                self.send(self.seq_dict[k])

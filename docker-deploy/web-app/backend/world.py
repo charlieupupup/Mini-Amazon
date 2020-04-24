@@ -53,9 +53,8 @@ class World(Base):
         assert world_id == res.worldid
 
         th_handler = threading.Thread(target=self.handler, args=())
+        th_handler.setDaemon(True)
         th_handler.start()
-        th_handler.join()
-
     """
     handler
     """
@@ -158,9 +157,9 @@ class World(Base):
         self.send(info_world)
 
     def res_ack(self, msg):
-        # repeated int64 acks
+        # pop out seq
         for a in msg.acks:
-            dict.pop(a, None)
+            self.seq_dict.pop(a, None)
 
     """
     message AErr{
@@ -194,6 +193,7 @@ class World(Base):
             curr_order[0].save()
 
             info_world.acks.append(seq)
+            self.seq_dict.pop(seq, None)
 
         self.send(info_world)
 
@@ -210,7 +210,7 @@ class World(Base):
         }
     """
 
-    def put_on_truck(self, pkg_id, seq_num):
+    def put_on_truck(self, pkg_id):
         command = self.header()
         pack = command.load.add()
 
@@ -218,7 +218,11 @@ class World(Base):
         pack.whnum = curr_order.whid
         pack.shipid = curr_order.pkgid
         pack.truckid = curr_order.truckid
-        pack.seq = seq_num
+        pack.seq = self.seq_num
+
+        self.seq_num += 1
+
+        self.seq_dict[seq_num] = command
 
         # send the info
         self.send(command)
@@ -230,7 +234,7 @@ class World(Base):
         }
     """
 
-    def query(self, seq_num):
+    def query(self):
         command = self.header()
 
         orders = order.objects.all()
@@ -239,8 +243,10 @@ class World(Base):
 
             q = command.queries.add()
             q.packageid = o.pkgid
-            q.seqnum = seq_num
-            seq_num += 1
+            q.seqnum = self.seq_num
+            self.seq_dict[seq_num] = command
+
+            self.seq_num += 1
 
         self.send(command)
 
@@ -253,7 +259,7 @@ class World(Base):
         }
     """
 
-    def pack(self, pkg_id, seq_num):
+    def pack(self, pkg_id):
         command = self.header()
         # filling info of topack
         # type: Apack
@@ -272,7 +278,10 @@ class World(Base):
         p.count = product.quantity
 
         pack.shipid = pkg_id
-        pack.seqnum = seq_num
+        pack.seqnum = self.seq_num
+
+        self.seq_dict[self.seq_num] = command
+        self.seq_num += 1
         self.send(command)
 
     """
@@ -283,7 +292,7 @@ class World(Base):
         }
     """
 
-    def purchase_more(self, product_id, wh_num, seq_num):
+    def purchase_more(self, product_id, wh_num, count):
         command = self.header()
         # populate buy
         # type: APurchaseMore
@@ -297,7 +306,10 @@ class World(Base):
         product = stock.objects.filter(pid=product_id)
         p.id = product.product_id
         p.description = product.description
-        p.count = product.quantity
+        p.count = count
 
-        purchase.seqnum = seq_num
+        purchase.seqnum = self.seq_num
+
+        self.seq_dict[self.seq_num] = command
+        self.seq_num += 1
         self.send(command)
