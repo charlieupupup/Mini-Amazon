@@ -127,6 +127,9 @@ def thankyou(request):
             # enough stock
             print('start buying')
             form.save()
+            entry = stock.objects.get(pid=pid)
+            entry.count -= count
+            entry.save()
             t2 = threading.Thread(target=back.pack, args=(pkgid,))
             t2.start()
             return render(request, 'thankyou.html', {})

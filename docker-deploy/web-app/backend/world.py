@@ -234,7 +234,7 @@ class World(Base):
         pack.truckid = curr_order.truckid
         pack.seq = self.seq_num
 
-        self.seq_dict[seq_num] = command
+        self.seq_dict[self.seq_num] = command
         self.seq_num += 1
 
         # send the info
@@ -257,7 +257,7 @@ class World(Base):
             q = command.queries.add()
             q.packageid = o.pkgid
             q.seqnum = self.seq_num
-            self.seq_dict[seq_num] = command
+            self.seq_dict[self.seq_num] = command
 
             self.seq_num += 1
 
@@ -285,9 +285,9 @@ class World(Base):
         # fill things field
         p = pack.things.add()
 
-        product = product.objects.get(pid=curr_order.pid)
-        p.id = product.pid
-        p.description = product.description
+        pro = product.objects.get(pid=curr_order.pid)
+        p.id = pro.pid
+        p.description = pro.description
         p.count = curr_order.count
 
         pack.shipid = pkg_id
@@ -316,9 +316,9 @@ class World(Base):
         # type: AProduct
         p = purchase.things.add()
 
-        product = stock.objects.get(pid=product_id)
+        pro = product.objects.get(pid=product_id)
         p.id = product_id
-        p.description = product.description
+        p.description = pro.description
         p.count = count
 
         purchase.seqnum = self.seq_num

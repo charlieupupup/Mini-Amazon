@@ -134,6 +134,7 @@ class UPS(Base):
         UPSOrder = order.objects.get(pkgid=placed.pkgid)
         # update order
         UPSOrder.truckid = placed.truckid
+        UPSOrder.save()
         return placed.seq
 
     # truck arrived & tell world to load
@@ -155,9 +156,10 @@ class UPS(Base):
     # }
     def pkgDelivered(self, delivered):
         print('pkgDelivered')
-        UPSOrder = order.objects.get(pkgid=delivered.pkgid)
-        # change status
-        UPSOrder.status = "delivered"
+        # UPSOrder = order.objects.get(pkgid=delivered.pkgid)
+        # # change status
+        # UPSOrder.status = "delivered"
+        # UPSOrder.save()
         return delivered.seq
 
     # Process Response
