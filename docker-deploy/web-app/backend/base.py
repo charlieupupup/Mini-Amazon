@@ -55,6 +55,7 @@ class Base():
 
     # resend the seq num in seq_dict
     def resend(self):
-        time.sleep(10)
-        for k in self.seq_dict:
-            self.send(self.seq_dict[k])
+        while True:
+            time.sleep(10)
+            for k in self.seq_dict:
+                self.send(self.seq_dict[k])

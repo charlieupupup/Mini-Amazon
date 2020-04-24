@@ -16,7 +16,7 @@ class World(Base):
     def setUPS(self, ups):
         self.ups = ups
 
-    def init(self, world_id=0):
+    def init(self, world_id):
         """
         message AConnect{
             optional int64 worldid = 1;
