@@ -24,6 +24,9 @@ class Back:
     def pack(self, pkgid):
         self.world.toPack(pkgid)
 
+    def refresh(self):
+        self.world.refresh()
+
 # # email set up
 # smtp_server = "smtp.gmail.com"
 # email_port = 587  # For starttls

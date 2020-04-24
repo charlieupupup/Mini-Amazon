@@ -143,6 +143,7 @@ def invalid(request):
 def orders(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
+    back.refresh()
     orders = order.objects.filter(user=request.user)
     context = {
         'orders': orders

@@ -114,23 +114,35 @@ class UPS(Base):
         loaded.seq = self.seq
         # send
         self.send(msg)
+        # change status
+        worldOrder.status = "loading"
+
+    # order placed
+    def orderPlaced(self, pkgid, truckid):
+        UPSOrder = order.objects.get(pkgid=pkgid)
+        UPSOrder.truckid = truckid
 
     # truck arrived & tell world to load
     def truckArrived(self, truckId):
-        worldOrder = order.objects.get(truckid=truckId)
-        # update database
-        worldOrder.arrived = True
+        UPSOrder = order.objects.get(truckid=truckId)
         # tell world
-        self.world.load(worldOrder)
+        self.world.load(UPSOrder)
+
+    # package delivered
+    def pkgDelivered(self, pkgid):
+        UPSOrder = order.objects.get(pkgid=pkgid)
+        # change status
+        UPSOrder.status = "delivered"
 
 
-
-
-
-
-
-
-    # Process AResponse
+    # Process Response
+    # message UMsg{
+    #         repeated UOrderPlaced uorderplaced = 1;                            (optional)
+    #         repeated UTruckArrived utruckarrived = 2; // Truck arrived at the warehouse          (optional)
+    #         repeated UPkgDelivered udelivered = 3; // Package delivered             (optional)
+    #         optional UInitialWorld initworld = 4
+    #         repeated int64 acks = 5;                                        (optional)
+    # }
     def processResponse(self):
         print('processing response')
         print(msg)
