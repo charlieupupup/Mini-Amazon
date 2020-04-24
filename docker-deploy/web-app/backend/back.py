@@ -18,6 +18,12 @@ class Back:
         # self.ups.init()
         # self.world.init()
 
+    def buy(self, pid, count):
+        self.world.purchase(pid, count)
+
+    def pack(self, pkgid):
+        self.world.toPack(pkgid)
+
 # # email set up
 # smtp_server = "smtp.gmail.com"
 # email_port = 587  # For starttls

@@ -103,13 +103,32 @@ def single(request):
 def thankyou(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
-    form = orderForm(request.POST or None)
+    data = request.POST.copy()
+    pkgid = order.objects.count()
+    data['pkgid'] = str(pkgid)
+    data['user'] = str(request.user.id)
+    form = orderForm(data or None)
+    print(form)
     if not form.is_valid():
+        print('invalid input')
         return redirect('/invalid')
     else:
-
-        form.save()
-        return render(request, 'thankyou.html', {})
+        pid = int(form.data['pid'])
+        count = int(form.data['count'])
+        storage = stock.objects.get(pid=pid).count
+        if (count > storage):
+            # not enough
+            print('not enough stock')
+            t1 = threading.Thread(target=back.buy, args=(pid, storage))
+            t1.start()
+            return redirect('/invalid')
+        else:
+            # enough stock
+            print('start buying')
+            form.save()
+            t2 = threading.Thread(target=back.pack, args=(pkgid,))
+            t2.start()
+            return render(request, 'thankyou.html', {})
 
 def invalid(request):
     if not request.user.is_authenticated:
