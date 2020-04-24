@@ -31,9 +31,10 @@ class Base():
 
     def send(self, msg):
         print("send: " + str(msg))
-        data_string = msg.SerializeToString()
-        _EncodeVarint(self.socket.send, len(data_string), None)
-        self.socket.send(data_string)
+        if str(msg) != "":
+            data_string = msg.SerializeToString()
+            _EncodeVarint(self.socket.send, len(data_string), None)
+            self.socket.send(data_string)
 
     def recv(self):
         var_int_buff = []
@@ -44,7 +45,7 @@ class Base():
             if new_pos != 0:
                 break
         whole_message = self.socket.recv(msg_len)
-        print("receive: " + whole_message)
+        print("receive: ", whole_message)
         return whole_message
 
     # resend the seq num in seq_dict

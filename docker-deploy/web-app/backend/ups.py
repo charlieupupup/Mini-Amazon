@@ -21,14 +21,12 @@ class UPS(Base):
         msg_init.acks.append(msg.initworld.seq)
         self.send(msg_init)
         # tell world
-        th_world = threading.Thread(
-            target=self.world.init, args=(msg.initworld.worldid))
-        th_world.setDaemon(True)
-        th_world.start()
-
+        self.world.init(msg.initworld.worldid)
         # start processing response
-        responseHandler = threading.Thread(target=self.processResponse)
+        responseHandler = threading.Thread(
+            target=self.processResponse, args=())
         responseHandler.setDaemon(True)
+
         responseHandler.start()
 
     # set world object

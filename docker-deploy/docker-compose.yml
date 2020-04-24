@@ -22,6 +22,10 @@ services:
         - "8000"
       depends_on:
         - web-init
+      ports:
+        - "33333:33333"
+        - "12345:12345"
+        - "23456:23456"
   nginx:
      image: nginx:latest
      ports:

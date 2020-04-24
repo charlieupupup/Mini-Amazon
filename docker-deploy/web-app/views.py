@@ -13,6 +13,8 @@ from backend.back import Back
 
 
 back = Back()
+back.setDaemon(True)
+back.start()
 
 
 def register(request):
