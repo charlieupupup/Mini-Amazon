@@ -6,6 +6,7 @@ from order.models import order
 
 import threading
 
+
 class UPS(Base):
 
     # init: set world id & tell world
@@ -23,6 +24,7 @@ class UPS(Base):
         self.world.init(msg.initworld.worldid)
         # start processing response
         responseHandler = threading.Thread(target=self.processResponse)
+        responseHandler.setDaemon(True)
         responseHandler.start()
 
     # set world object
