@@ -171,14 +171,16 @@ class UPS(Base):
         # UPSOrder.save()
         return delivered.seq
 
-    # Process Response
-    # message UMsg{
-    #         repeated UOrderPlaced uorderplaced = 1;                            (optional)
-    #         repeated UTruckArrived utruckarrived = 2; // Truck arrived at the warehouse          (optional)
-    #         repeated UPkgDelivered udelivered = 3; // Package delivered             (optional)
-    #         optional UInitialWorld initworld = 4
-    #         repeated int64 acks = 5;                                        (optional)
-    # }
+    """
+    message UMsg{
+            repeated UOrderPlaced uorderplaced = 1;                  
+            repeated UTruckArrived utruckarrived = 2; // Truck arrived at the warehouse          
+            repeated UPkgDelivered upkgdelivered = 3; // Package delivered
+            optional UInitialWorld initworld = 4;             
+                        repeated int64 acks = 5;                              
+            }
+    """
+
     def processResponse(self):
         print('processing response')
         while True:
@@ -192,7 +194,7 @@ class UPS(Base):
                 if arrived.seq not in self.recv_msg:
                     self.recv_msg.add(arrived.seq)
                     back.acks.append(self.truckArrived(arrived))
-            for delivered in msg.udelivered:
+            for delivered in msg.upkgdelivered:
                 if delivered.seq not in self.recv_msg:
                     self.recv_msg.add(delivered.seq)
                     back.acks.append(self.pkgDelivered(delivered))
