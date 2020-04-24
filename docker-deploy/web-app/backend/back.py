@@ -2,7 +2,6 @@ from .ups import UPS
 from .world import World
 
 import threading
-from threading import Thread
 HOST_UPS = 'vcm-12423.vm.duke.edu'
 PORT_UPS = 33333
 
@@ -12,7 +11,7 @@ PORT_WORLD = 23456
 SIMSPEED = 100
 
 
-class Back(Thread):
+class Back():
     def __init__(self):
         self.ups = UPS(HOST_UPS, PORT_UPS, SIMSPEED)
         print('ups initialized')
