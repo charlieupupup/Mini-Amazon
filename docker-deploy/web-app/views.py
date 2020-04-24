@@ -11,11 +11,8 @@ from order.models import order
 from order.forms import orderForm
 from backend.back import Back
 
-"""
+global back
 back = Back()
-back.setDaemon(True)
-back.start()
-"""
 
 
 def register(request):
@@ -23,6 +20,7 @@ def register(request):
     context = {
         'form': form
     }
+
     return render(request, "registration/register.html", context)
 
 
