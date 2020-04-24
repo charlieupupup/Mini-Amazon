@@ -13,20 +13,15 @@ mainly for encode & decode
 
 
 class Base():
-    def __init__(self, host, port, simspeed):
+    def __init__(self, host, port, simspeed=100):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((host, port))
         self.simspeed = simspeed
         self.seq_num = 0
         self.seq_dict = dict()
 
-        self.th_resend = threading.Thread(target=self.resend, args=())
-        self.th_resend.setDaemon(True)
-        self.th_resend.start()
-
     def __del__(self):
         self.socket.close()
-        # self.th_resend.join()
 
     def send(self, msg):
         data_string = msg.SerializeToString()
@@ -55,8 +50,5 @@ class Base():
 
     # resend the seq num in seq_dict
     def resend(self):
-        while True:
-            time.sleep(10)
-
-            for k in self.seq_dict:
-                self.send(self.seq_dict[k])
+        for k in self.seq_dict:
+            self.send(self.seq_dict[k])
