@@ -114,12 +114,13 @@ def thankyou(request):
         return redirect('/invalid')
     else:
         pid = int(form.data['pid'])
+        whid = int(form.data['whid'])
         count = int(form.data['count'])
         storage = stock.objects.get(pid=pid).count
         if (count > storage):
             # not enough
             print('not enough stock')
-            t1 = threading.Thread(target=back.buy, args=(pid, storage))
+            t1 = threading.Thread(target=back.buy, args=(pid, whid, storage+count))
             t1.start()
             return redirect('/invalid')
         else:

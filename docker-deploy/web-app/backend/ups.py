@@ -9,8 +9,11 @@ import threading
 class UPS(Base):
 
     # init: set world id & tell world
+    # message UInitialWorld{
+    #         required int64 worldid = 1;
+    #         required int64 seq = 2;
+    # }
     def init(self):
-        self.seq = 0
         msg = self.receive()
         # send back
         msg_init = IG1_pb2.AMsg()
@@ -87,9 +90,11 @@ class UPS(Base):
         pd = product.objects.get(pid=worldOrder.pid)
         products.description = pd.description
         products.count = worldOrder.count
-        #
-        self.seq += 1
-        truck.seq = self.seq
+        # seq
+        self.seq_num += 1
+        temp = self.seq_num
+        truck.seq = temp
+        self.seq_dict[temp] = msg
         # send
         self.send(msg)
 
@@ -110,30 +115,50 @@ class UPS(Base):
         loaded = msg.afinishloading.add()
         loaded.pkgid = worldOrder.pkgid
         loaded.truckid = worldOrder.truckid
-        self.seq += 1
-        loaded.seq = self.seq
+        # seq
+        self.seq_num += 1
+        temp = self.seq_num
+        loaded.seq = temp
+        self.seq_dict[temp] = msg
         # send
         self.send(msg)
-        # change status
-        worldOrder.status = "loading"
 
     # order placed
-    def orderPlaced(self, pkgid, truckid):
-        UPSOrder = order.objects.get(pkgid=pkgid)
-        UPSOrder.truckid = truckid
+    # message UOrderPlaced{
+    #             required int64 pkgid = 1; // Package ID
+    #             required int32 truckid = 2; // Truck ID
+    #             required int64 seq = 3; //Sequence number
+    # }
+    def orderPlaced(self, placed):
+        print('orderPlaced')
+        UPSOrder = order.objects.get(pkgid=placed.pkgid)
+        # update order
+        UPSOrder.truckid = placed.truckid
+        return placed.seq
 
     # truck arrived & tell world to load
-    def truckArrived(self, truckId):
-        UPSOrder = order.objects.get(truckid=truckId)
+    # message UTruckArrived{
+    #             required int32 truckid = 1; //Truck ID
+    #             required int64 seq = 2; //Sequence number
+    # }
+    def truckArrived(self, arrived):
+        print('truckArrived')
+        UPSOrder = order.objects.get(truckid=arrived.truckid)
         # tell world
-        self.world.load(UPSOrder)
+        self.world.put_on_truck(UPSOrder)
+        return arrived.seq
 
     # package delivered
-    def pkgDelivered(self, pkgid):
-        UPSOrder = order.objects.get(pkgid=pkgid)
+    # message UPkgDelivered{
+    #             required int64 pkgid = 1;
+    #             required int64 seq = 2;
+    # }
+    def pkgDelivered(self, delivered):
+        print('pkgDelivered')
+        UPSOrder = order.objects.get(pkgid=delivered.pkgid)
         # change status
         UPSOrder.status = "delivered"
-
+        return delivered.seq
 
     # Process Response
     # message UMsg{
@@ -145,122 +170,16 @@ class UPS(Base):
     # }
     def processResponse(self):
         print('processing response')
-        print(msg)
-        global SeqNum
-        toWorldEmpty = True
-        toAmazonEmpty = True
-
-        # Check the acks field, delete those in UPS seqnum table
-        for ack in msg.acks:
-            Deleteusend(conn, ack)
-
-        # Prepare UCommand & UCommunicate
-        ToWorld = wupb.UCommands()
-        ToAmazon = uapb.UCommunicate()
-
-        # Check for AOrderPlaced
-        for aor in msg.aorderplaced:
-            print('process AOrderPlace')
-
-            # Select one truck from truck table
-            truck = Findidle(conn)
-            if truck == -1:
-                truck = Findtruck(conn)
-                if truck == -1:
-                    print('no truck available, ignore the order')
-                    continue
-
-            # Store in amazon seqnum table
-            exists = Arecvseq(conn, aor.seqnum)
-            if not exists:
-                Insertarecv(conn, aor.seqnum)
-            else:
-                print('process before')
-                continue
-
-            toWorldEmpty = False
-            toAmazonEmpty = False
-
-            # Add ACK
-            ToAmazon.acks.append(aor.seqnum)
-
-            # Add package in package table
-            items = ''
-            amount = 0
-            for thing in aor.things:
-                if not items:
-                    items = thing.name
-                else:
-                    items = items + ',' + thing.name
-                amount += thing.count
-            Insertpackage(conn, aor.packageid, aor.x, aor.y,
-                          'created', items, amount, truck, aor.UPSuserid)
-
-            # Add UGoPickup to ToWorld
-            pick = ToWorld.pickups.add()
-            pick.truckid = truck
-            pick.whid = aor.whid
-            with seq_lock:
-                pick.seqnum = SeqNum
-                SeqNum += 1
-
-            # Add UOrderplaced to toAmazon
-            order = ToAmazon.uorderplaced.add()
-            order.packageid = aor.packageid
-            order.truckid = truck
-            with seq_lock:
-                order.seqnum = SeqNum
-                SeqNum += 1
-
-            # Add send message to usend table
-            Insertusend(conn, pick.seqnum, pick.SerializeToString(), 'UGoPickup')
-            Insertusend(conn, order.seqnum,
-                        order.SerializeToString(), 'UOrderPlaced')
-
-            # Update status of package and truck
-            Truckstatus(conn, truck, 'to warehouse')
-            Packagestatus(conn, aor.packageid, 'truck en-route to warehouse')
-
-        # Check for ALoadingFinished
-        for alod in msg.aloaded:
-            toWorldEmpty = False
-            toAmazonEmpty = False
-            print('process ALoadingFinished')
-
-            # Store in amazon seqnum table
-            exists = Arecvseq(conn, alod.seqnum)
-            if not exists:
-                Insertarecv(conn, alod.seqnum)
-            else:
-                print('process before')
-                continue
-
-            # Add ACK
-            ToAmazon.acks.append(alod.seqnum)
-
-            # Update status of package & update the truck amount
-            Packagestatus(conn, alod.packageid, 'out for delivery')
-            Truckamount(conn, alod.truckid, True)
-            Truckstatus(conn, alod.truckid, 'delivering')
-
-            # Add UGoDeliver to ToWorld
-            xy = Packageaddress(conn, alod.packageid)
-            deliver = ToWorld.deliveries.add()
-            deliver.truckid = alod.truckid
-            package = deliver.packages.add()
-            package.packageid = alod.packageid
-            package.x = xy[0]
-            package.y = xy[1]
-            with seq_lock:
-                deliver.seqnum = SeqNum
-                SeqNum += 1
-
-            # Add send message to usend table
-            Insertusend(conn, deliver.seqnum,
-                        deliver.SerializeToString(), 'UGoDeliver')
-
-        # Send ACK to World & Amazon
-        if not toAmazonEmpty:
-            Send(aSock, ToAmazon)
-        if not toWorldEmpty:
-            Send(wSock, ToWorld)
+        while True:
+            msg = self.receive()
+            back = IG1_pb2.AMsg()
+            for placed in msg.uorderplaced:
+                back.acks.append(self.orderPlaced(placed))
+            for arrived in msg.utruckarrived:
+                back.acks.append(self.truckArrived(arrived))
+            for delivered in msg.udelivered:
+                back.acks.append(self.pkgDelivered(delivered))
+            for ack in msg.acks:
+                self.seq_dict.pop(ack)
+            # send back
+            self.send(back)

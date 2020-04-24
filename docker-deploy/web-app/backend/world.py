@@ -2,8 +2,8 @@ from .base import Base
 from . import world_amazon_pb2
 from . import IG1_pb2
 
-from ..stock.models import stock, product, warehouse
-from ..order.models import order
+from stock.models import stock, product, warehouse
+from order.models import order
 
 import threading
 
@@ -129,8 +129,8 @@ class World(Base):
             """
             # ship id
             ship_id = r.shipid
-
-            self.ups.sendTruck(ship_id)
+            shipment = order.objects.get(pid=ship_id)
+            self.ups.sendTruck(shipment)
 
             # ack
             info_world.acks.append(r.seqnum)
@@ -150,7 +150,8 @@ class World(Base):
             sid = l.shipid
             seq = l.seqnum
 
-            self.ups.loaded(sid)
+            shipment = order.objects.get(pid=sid)
+            self.ups.loaded(shipment)
 
             info_world.acks.append(seq)
 
@@ -210,11 +211,10 @@ class World(Base):
         }
     """
 
-    def put_on_truck(self, pkg_id):
+    def put_on_truck(self, curr_order):
         command = self.header()
         pack = command.load.add()
 
-        curr_order = order.objects.filter(pkgid=pkg_id)
         pack.whnum = curr_order.whid
         pack.shipid = curr_order.pkgid
         pack.truckid = curr_order.truckid

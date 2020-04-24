@@ -11,21 +11,21 @@ SIMSPEED = 100
 
 class Back:
     def __init__(self):
-        # self.ups = UPS(HOST_UPS, PORT_UPS)
-        self.world = World(HOST_WORLD, PORT_WORLD)
-        # self.ups.setWorld(self.world)
-        # self.world.setUPS(self.ups)
-        # self.ups.init()
+        self.ups = UPS(HOST_UPS, PORT_UPS, SIMSPEED)
+        self.world = World(HOST_WORLD, PORT_WORLD, SIMSPEED)
+        self.ups.setWorld(self.world)
+        self.world.setUPS(self.ups)
+        self.ups.init()
         # self.world.init()
 
-    def buy(self, pid, count):
-        self.world.purchase(pid, count)
+    def buy(self, pid, whid, count):
+        self.world.purchase_more(pid, whid, count)
 
     def pack(self, pkgid):
-        self.world.toPack(pkgid)
+        self.world.pack(pkgid)
 
     def refresh(self):
-        self.world.refresh()
+        self.world.query()
 
 # # email set up
 # smtp_server = "smtp.gmail.com"
