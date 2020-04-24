@@ -2,7 +2,7 @@ from .base import Base
 from . import world_amazon_pb2
 from . import IG1_pb2
 
-from ..stock.models import stock, product
+from ..stock.models import stock, product, warehouse
 from ..order.models import order
 
 import threading
@@ -12,10 +12,6 @@ class World(Base):
     """
     init
     """
-    # init warehouse
-
-    def init_warehouse(self, msg):
-        pass
 
     def setUPS(self, ups):
         self.ups = ups
@@ -31,7 +27,14 @@ class World(Base):
         """
         msg_init = world_amazon_pb2.AConnect()
         msg_init.worldid = world_id
-        self.init_warehouse(msg_init)
+
+        info_wh = warehouse.objects.all()
+
+        for w in info_wh:
+            curr_wh = msg_init.initwh.add()
+            curr_wh.id = w.whid
+            curr_wh.x = w.x
+            curr_wh.y = w.y
         msg_init.isAmazon = True
 
         self.send(msg_init)
@@ -186,6 +189,10 @@ class World(Base):
             s = pkg.status
             seq = pkg.seqnum
 
+            curr_order = order.objects.filter(pkgid=pkg_id)
+            curr_order[0].status = s
+            curr_order[0].save()
+
             info_world.acks.append(seq)
 
         self.send(info_world)
@@ -223,11 +230,17 @@ class World(Base):
         }
     """
 
-    def query(self, pkg_id, seq_num):
+    def query(self, seq_num):
         command = self.header()
-        q = command.queries.add()
-        q.packageid = pkg_id
-        q.seqnum = seq_num
+
+        orders = order.objects.all()
+
+        for o in orders:
+
+            q = command.queries.add()
+            q.packageid = o.pkgid
+            q.seqnum = seq_num
+            seq_num += 1
 
         self.send(command)
 
