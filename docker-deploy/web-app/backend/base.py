@@ -30,6 +30,7 @@ class Base():
         self.socket.close()
 
     def send(self, msg):
+        print("send: " + str(msg))
         data_string = msg.SerializeToString()
         _EncodeVarint(self.socket.send, len(data_string), None)
         self.socket.send(data_string)
