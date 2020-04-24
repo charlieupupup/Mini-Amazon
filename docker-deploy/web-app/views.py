@@ -11,20 +11,25 @@ from order.models import order
 from order.forms import orderForm
 from backend.back import Back
 
+
 back = Back()
+print("init backend")
+
 
 def register(request):
     form = UserCreationForm
     context = {
-        'form' : form
+        'form': form
     }
     return render(request, "registration/register.html", context)
+
 
 def signup(request):
     form = UserCreationForm(request.POST or None)
     if form.is_valid():
         form.save()
     return redirect('/index')
+
 
 def home(request):
     if not request.user.is_authenticated:
@@ -35,15 +40,18 @@ def home(request):
     }
     return render(request, 'index.html', context)
 
+
 def cart(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
     return render(request, 'cart.html', {})
 
+
 def about(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
     return render(request, 'about.html', {})
+
 
 def checkout(request):
     if not request.user.is_authenticated:
@@ -54,10 +62,12 @@ def checkout(request):
     }
     return render(request, 'checkout.html', context)
 
+
 def contact(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
     return render(request, 'contact.html', {})
+
 
 def shop(request):
     if not request.user.is_authenticated:
@@ -68,6 +78,7 @@ def shop(request):
     }
     return render(request, 'shop.html', context)
 
+
 def men(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
@@ -76,6 +87,7 @@ def men(request):
         'products': products
     }
     return render(request, 'shop.html', context)
+
 
 def women(request):
     if not request.user.is_authenticated:
@@ -86,6 +98,7 @@ def women(request):
     }
     return render(request, 'shop.html', context)
 
+
 def children(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
@@ -95,10 +108,12 @@ def children(request):
     }
     return render(request, 'shop.html', context)
 
+
 def single(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
     return render(request, 'shop-single.html', {})
+
 
 def thankyou(request):
     if not request.user.is_authenticated:
@@ -120,7 +135,8 @@ def thankyou(request):
         if (count > storage):
             # not enough
             print('not enough stock')
-            t1 = threading.Thread(target=back.buy, args=(pid, whid, storage+count))
+            t1 = threading.Thread(
+                target=back.buy, args=(pid, whid, storage+count))
             t1.start()
             return redirect('/invalid')
         else:
@@ -134,6 +150,7 @@ def thankyou(request):
             t2.start()
             return render(request, 'thankyou.html', {})
 
+
 def invalid(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
@@ -143,6 +160,7 @@ def invalid(request):
         'form': form
     }
     return render(request, 'checkout.html', context)
+
 
 def orders(request):
     if not request.user.is_authenticated:

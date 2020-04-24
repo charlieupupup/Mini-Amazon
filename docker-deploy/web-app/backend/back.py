@@ -1,13 +1,15 @@
 from .ups import UPS
 from .world import World
 
+import threading
 HOST_UPS = 'vcm-14579.vm.duke.edu'
 PORT_UPS = 33333
 
-HOST_WORLD = 'vcm-12423.vm.duke.edu'
+HOST_WORLD = 'vcm-14579.vm.duke.edu'
 PORT_WORLD = 23456
 
 SIMSPEED = 100
+
 
 class Back:
     def __init__(self):
@@ -18,7 +20,12 @@ class Back:
         self.ups.setWorld(self.world)
         self.world.setUPS(self.ups)
         print('ups init')
-        self.ups.init()
+
+        # init
+        th_init = threading.Thread(target=self.ups.init, args=())
+        th_init.setDaemon(True)
+        th_init.start()
+
         # self.world.init(0)
 
     def buy(self, pid, whid, count):

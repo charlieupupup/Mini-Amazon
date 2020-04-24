@@ -134,7 +134,7 @@ class World(Base):
                 self.recv_msg.add(r.seqnum)
                 # ship id
                 ship_id = r.shipid
-                shipment = order.objects.get(pid=ship_id)
+                shipment = order.objects.get(pkgid=ship_id)
                 self.ups.sendTruck(shipment)
 
                 # ack

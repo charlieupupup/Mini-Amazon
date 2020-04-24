@@ -21,7 +21,8 @@ class UPS(Base):
         msg_init.acks.append(msg.initworld.seq)
         self.send(msg_init)
         # tell world
-        self.world.init(msg.initworld.worldid)
+        th_world = threading.Thread(
+            target=self.world.init, args=(msg.initworld.worldid))
         # start processing response
         responseHandler = threading.Thread(target=self.processResponse)
         responseHandler.setDaemon(True)
@@ -43,7 +44,6 @@ class UPS(Base):
         msg = IG1_pb2.UMsg()
         raw_byte = self.recv()
         msg.ParseFromString(raw_byte)
-        print(msg)
         return msg
 
     # sendTruck
