@@ -57,10 +57,7 @@ message AErr{
   required int64 seqnum = 3;
 }
 
-message AQuery{
-  required int64 packageid = 1;
-  required int64 seqnum = 2;
-}
+F
 
 message APackage{
   required int64 packageid =1;
