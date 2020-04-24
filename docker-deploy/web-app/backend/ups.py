@@ -23,6 +23,9 @@ class UPS(Base):
         # tell world
         th_world = threading.Thread(
             target=self.world.init, args=(msg.initworld.worldid))
+        responseHandler.setDaemon(True)
+        responseHandler.start()
+
         # start processing response
         responseHandler = threading.Thread(target=self.processResponse)
         responseHandler.setDaemon(True)
