@@ -63,6 +63,7 @@ class World(Base):
         while True:
             raw_byte = self.recv()
             self.response(raw_byte)
+            self.resend()
 
     def header(self):
         command = world_amazon_pb2.ACommands()
@@ -81,7 +82,7 @@ class World(Base):
         }
     """
 
-    def response(self, raw_byte, dict):
+    def response(self, raw_byte):
 
         msg = world_amazon_pb2.AResponses()
         msg.ParseFromString(raw_byte)
@@ -107,9 +108,9 @@ class World(Base):
                 des = p.description
                 cnt = p.count
 
-                curr_s = stock.objects.filter(pid=idx).filter(whid=wh_num)
-                curr_s[0].count += cnt
-                curr_s[0].save()
+                curr_s = stock.objects.get(pid=idx, whid=wh_num)
+                curr_s.count += cnt
+                curr_s.save()
 
             # ack
             info_world.acks.append(arr.seqnum)
@@ -160,7 +161,7 @@ class World(Base):
     def res_ack(self, msg):
         # pop out seq
         for a in msg.acks:
-            self.seq_dict.pop(a, None)
+            self.seq_dict.pop(a)
 
     """
     message AErr{
@@ -171,8 +172,12 @@ class World(Base):
     """
 
     def res_err(self, msg):
+        info_world = self.header()
         for e in msg.error:
             print(e.err)
+            info_world.acks.append(e.seqnum)
+
+        self.send(info_world)
 
     def res_pkgsts(self, msg):
         info_world = self.header()
@@ -189,12 +194,11 @@ class World(Base):
             s = pkg.status
             seq = pkg.seqnum
 
-            curr_order = order.objects.filter(pkgid=pkg_id)
-            curr_order[0].status = s
-            curr_order[0].save()
+            curr_order = order.objects.get(pkgid=pkg_id)
+            curr_order.status = s
+            curr_order.save()
 
             info_world.acks.append(seq)
-            self.seq_dict.pop(seq, None)
 
         self.send(info_world)
 
@@ -220,9 +224,8 @@ class World(Base):
         pack.truckid = curr_order.truckid
         pack.seq = self.seq_num
 
-        self.seq_num += 1
-
         self.seq_dict[seq_num] = command
+        self.seq_num += 1
 
         # send the info
         self.send(command)
@@ -265,17 +268,17 @@ class World(Base):
         # type: Apack
         pack = command.topack.add()
 
-        curr_order = order.objects.filter(pkgid=pkg_id)
+        curr_order = order.objects.get(pkgid=pkg_id)
 
         pack.whnum = curr_order.whid
 
         # fill things field
         p = pack.things.add()
 
-        product = product.objects.filter(pid=curr_order.pid)
+        product = product.objects.get(pid=curr_order.pid)
         p.id = product.pid
         p.description = product.description
-        p.count = product.quantity
+        p.count = curr_order.count
 
         pack.shipid = pkg_id
         pack.seqnum = self.seq_num
@@ -303,8 +306,8 @@ class World(Base):
         # type: AProduct
         p = purchase.things.add()
 
-        product = stock.objects.filter(pid=product_id)
-        p.id = product.product_id
+        product = stock.objects.get(pid=product_id)
+        p.id = product_id
         p.description = product.description
         p.count = count
 
