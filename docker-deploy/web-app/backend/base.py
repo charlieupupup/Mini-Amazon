@@ -19,6 +19,11 @@ class Base():
         self.simspeed = simspeed
         self.seq_num = 0
         self.seq_dict = dict()
+        self.recv_msg = set()
+
+        th_resend = threading.Thread(target=self.resend, args=())
+        th_resend.setDaemon(True)
+        th_resend.start()
 
     def __del__(self):
         self.socket.close()
@@ -50,5 +55,6 @@ class Base():
 
     # resend the seq num in seq_dict
     def resend(self):
+        time.sleep(10)
         for k in self.seq_dict:
             self.send(self.seq_dict[k])

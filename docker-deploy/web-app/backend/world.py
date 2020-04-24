@@ -63,7 +63,6 @@ class World(Base):
         while True:
             raw_byte = self.recv()
             self.response(raw_byte)
-            self.resend()
 
     def header(self):
         command = world_amazon_pb2.ACommands()
@@ -99,21 +98,24 @@ class World(Base):
         info_world = self.header()
         # arrived
         for arr in msg.arrived:
-            # warehouse num
-            wh_num = arr.whnum
+            # check proceed or not
+            if arr.seqnum not in self.recv_msg:
+                self.recv_msg.add(arr.seqnum)
 
-            # Aproduct
-            for p in arr.things:
-                idx = p.id
-                des = p.description
-                cnt = p.count
+                # warehouse num
+                wh_num = arr.whnum
 
-                curr_s = stock.objects.get(pid=idx, whid=wh_num)
-                curr_s.count += cnt
-                curr_s.save()
+                # Aproduct
+                for p in arr.things:
+                    idx = p.id
+                    des = p.description
+                    cnt = p.count
 
-            # ack
-            info_world.acks.append(arr.seqnum)
+                    curr_s = stock.objects.get(pid=idx, whid=wh_num)
+                    curr_s.count += cnt
+                    curr_s.save()
+
+                info_world.acks.append(arr.seqnum)
 
         self.send(info_world)
 
@@ -128,13 +130,15 @@ class World(Base):
             required int64 seqnum = 2;
             }
             """
-            # ship id
-            ship_id = r.shipid
-            shipment = order.objects.get(pid=ship_id)
-            self.ups.sendTruck(shipment)
+            if r.seqnum not in self.recv_msg:
+                self.recv_msg.add(r.seqnum)
+                # ship id
+                ship_id = r.shipid
+                shipment = order.objects.get(pid=ship_id)
+                self.ups.sendTruck(shipment)
 
-            # ack
-            info_world.acks.append(r.seqnum)
+                # ack
+                info_world.acks.append(r.seqnum)
 
         self.send(info_world)
 
@@ -148,20 +152,22 @@ class World(Base):
             required int64 seqnum = 2;
             }
             """
-            sid = l.shipid
-            seq = l.seqnum
+            if l.seqnum not in self.recv_msg:
+                self.recv_msg.add(l.seqnum)
+                sid = l.shipid
+                seq = l.seqnum
 
-            shipment = order.objects.get(pid=sid)
-            self.ups.loaded(shipment)
+                shipment = order.objects.get(pid=sid)
+                self.ups.loaded(shipment)
 
-            info_world.acks.append(seq)
+                info_world.acks.append(seq)
 
         self.send(info_world)
 
     def res_ack(self, msg):
         # pop out seq
         for a in msg.acks:
-            self.seq_dict.pop(a)
+            self.seq_dict.pop(a, None)
 
     """
     message AErr{
@@ -175,7 +181,9 @@ class World(Base):
         info_world = self.header()
         for e in msg.error:
             print(e.err)
-            info_world.acks.append(e.seqnum)
+            if e.seqnum not in self.recv_msg:
+                self.recv_msg.add(e.seqnum)
+                info_world.acks.append(e.seqnum)
 
         self.send(info_world)
 
@@ -190,15 +198,17 @@ class World(Base):
             required int64 seqnum = 3;
             }
             """
-            pkg_id = pkg.packageid
-            s = pkg.status
-            seq = pkg.seqnum
+            if pkg.seqnum not in self.recv_msg:
+                self.recv_msg.add(pkg.seqnum)
+                pkg_id = pkg.packageid
+                s = pkg.status
+                seq = pkg.seqnum
 
-            curr_order = order.objects.get(pkgid=pkg_id)
-            curr_order.status = s
-            curr_order.save()
+                curr_order = order.objects.get(pkgid=pkg_id)
+                curr_order.status = s
+                curr_order.save()
 
-            info_world.acks.append(seq)
+                info_world.acks.append(seq)
 
         self.send(info_world)
 
