@@ -13,7 +13,6 @@ from backend.back import Back
 
 
 back = Back()
-print("init backend")
 
 
 def register(request):
@@ -118,6 +117,7 @@ def single(request):
 def thankyou(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
+    global back
     data = request.POST.copy()
     pkgid = order.objects.count()
     data['pkgid'] = str(pkgid)
@@ -165,6 +165,7 @@ def invalid(request):
 def orders(request):
     if not request.user.is_authenticated:
         return redirect('/accounts/login')
+    global back
     back.refresh()
     orders = order.objects.filter(user=request.user)
     context = {

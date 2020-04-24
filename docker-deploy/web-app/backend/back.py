@@ -13,20 +13,22 @@ SIMSPEED = 100
 
 class Back:
     def __init__(self):
+        # init
+        th_init = threading.Thread(target=self.init, args=())
+        th_init.setDaemon(True)
+        th_init.start()
+        # self.world.init(0)
+
+    def init(self):
         self.ups = UPS(HOST_UPS, PORT_UPS, SIMSPEED)
         print('ups initialized')
         self.world = World(HOST_WORLD, PORT_WORLD, SIMSPEED)
         print('world initialized')
         self.ups.setWorld(self.world)
         self.world.setUPS(self.ups)
-        print('ups init')
-
-        # init
-        th_init = threading.Thread(target=self.ups.init, args=())
-        th_init.setDaemon(True)
-        th_init.start()
-
-        # self.world.init(0)
+        print('set completed')
+        self.ups.init()
+        print('backend inited')
 
     def buy(self, pid, whid, count):
         self.world.purchase_more(pid, whid, count)
