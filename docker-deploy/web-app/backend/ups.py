@@ -174,12 +174,18 @@ class UPS(Base):
             msg = self.receive()
             back = IG1_pb2.AMsg()
             for placed in msg.uorderplaced:
-                back.acks.append(self.orderPlaced(placed))
+                if placed.seq not in self.recv_msg:
+                    self.recv_msg.add(placed.seq)
+                    back.acks.append(self.orderPlaced(placed))
             for arrived in msg.utruckarrived:
-                back.acks.append(self.truckArrived(arrived))
+                if arrived.seq not in self.recv_msg:
+                    self.recv_msg.add(arrived.seq)
+                    back.acks.append(self.truckArrived(arrived))
             for delivered in msg.udelivered:
-                back.acks.append(self.pkgDelivered(delivered))
+                if delivered.seq not in self.recv_msg:
+                    self.recv_msg.add(delivered.seq)
+                    back.acks.append(self.pkgDelivered(delivered))
             for ack in msg.acks:
-                self.seq_dict.pop(ack)
+                self.seq_dict.pop(ack, None)
             # send back
             self.send(back)
