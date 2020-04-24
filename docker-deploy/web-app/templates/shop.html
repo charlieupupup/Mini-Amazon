@@ -1,124 +1,133 @@
 {% extends 'base.html' %}
-{% load staticfiles %}
+{% load static %}
 {% block content %}
 
-    <div class="bg-light py-3">
-      <div class="container">
-        <div class="row">
-          <div class="col-md-12 mb-0"><a href="/index">Home</a> <span class="mx-2 mb-0">/</span> <strong class="text-black">Shop</strong></div>
-        </div>
-      </div>
+<div class="bg-light py-3">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12 mb-0"><a href="/index">Home</a> <span class="mx-2 mb-0">/</span> <strong
+          class="text-black">Shop</strong></div>
     </div>
+  </div>
+</div>
 
-    <div class="site-section">
-      <div class="container">
+<div class="site-section">
+  <div class="container">
 
+    <div class="row mb-5">
+      <div class="col-md-9 order-2">
+
+        <div class="row">
+          <div class="col-md-12 mb-5">
+            <div class="float-md-left mb-4">
+              <h2 class="text-black h5">Shop All</h2>
+            </div>
+            <div class="d-flex">
+              <div class="dropdown mr-1 ml-md-auto">
+                <button type="button" class="btn btn-secondary btn-sm dropdown-toggle" id="dropdownMenuOffset"
+                  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  All
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuOffset">
+                  <a class="dropdown-item" href="/shop">All</a>
+                  <a class="dropdown-item" href="/shop/men">Men</a>
+                  <a class="dropdown-item" href="/shop/women">Women</a>
+                  <a class="dropdown-item" href="/shop/children">Children</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="row mb-5">
-          <div class="col-md-9 order-2">
 
-            <div class="row">
-              <div class="col-md-12 mb-5">
-                <div class="float-md-left mb-4"><h2 class="text-black h5">Shop All</h2></div>
-                <div class="d-flex">
-                  <div class="dropdown mr-1 ml-md-auto">
-                    <button type="button" class="btn btn-secondary btn-sm dropdown-toggle" id="dropdownMenuOffset" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      All
-                    </button>
-                    <div class="dropdown-menu" aria-labelledby="dropdownMenuOffset">
-                      <a class="dropdown-item" href="/shop">All</a>
-                      <a class="dropdown-item" href="/shop/men">Men</a>
-                      <a class="dropdown-item" href="/shop/women">Women</a>
-                      <a class="dropdown-item" href="/shop/children">Children</a>
-                    </div>
-                  </div>
-                </div>
+          {% for product in products %}
+          <div class="col-sm-6 col-lg-4 mb-4" data-aos="fade-up">
+            <div class="block-4 text-center border">
+              <figure class="block-4-image">
+                {% with product.pic as image_static %}
+                <a href="/shop-single"><img src="{% static image_static %}" alt="Image placeholder"
+                    class="img-fluid"></a>
+                {% endwith %}
+              </figure>
+              <div class="block-4-text p-4">
+                <h3><a href="/shop-single">Product {{product.pid}}</a></h3>
+                <p class="mb-0">{{product.description}}</p>
+                <p class="text-primary font-weight-bold">${{product.price}}</p>
               </div>
             </div>
-            <div class="row mb-5">
-
-              {% for product in products %}
-              <div class="col-sm-6 col-lg-4 mb-4" data-aos="fade-up">
-                <div class="block-4 text-center border">
-                  <figure class="block-4-image">
-                    {% with product.pic as image_static %}
-                    <a href="/shop-single"><img src="{% static image_static %}" alt="Image placeholder" class="img-fluid"></a>
-                    {% endwith %}
-                  </figure>
-                  <div class="block-4-text p-4">
-                    <h3><a href="/shop-single">Product {{product.pid}}</a></h3>
-                    <p class="mb-0">{{product.description}}</p>
-                    <p class="text-primary font-weight-bold">${{product.price}}</p>
-                  </div>
-                </div>
-              </div>
-              {% endfor %}
-
-
-            </div>
           </div>
+          {% endfor %}
 
-          <div class="col-md-3 order-1 mb-5 mb-md-0">
-            <div class="border p-4 rounded mb-4">
-              <h3 class="mb-3 h6 text-uppercase text-black d-block">Categories</h3>
-              <ul class="list-unstyled mb-0">
-                <li class="mb-1"><a href="/shop" class="d-flex"><span>All</span> <span class="text-black ml-auto">(4)</span></a></li>
-                <li class="mb-1"><a href="/shop/men" class="d-flex"><span>Men</span> <span class="text-black ml-auto">(2)</span></a></li>
-                <li class="mb-1"><a href="/shop/women" class="d-flex"><span>Women</span> <span class="text-black ml-auto">(1)</span></a></li>
-                <li class="mb-1"><a href="/shop/children" class="d-flex"><span>Children</span> <span class="text-black ml-auto">(1)</span></a></li>
-              </ul>
-            </div>
 
-          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3 order-1 mb-5 mb-md-0">
+        <div class="border p-4 rounded mb-4">
+          <h3 class="mb-3 h6 text-uppercase text-black d-block">Categories</h3>
+          <ul class="list-unstyled mb-0">
+            <li class="mb-1"><a href="/shop" class="d-flex"><span>All</span> <span
+                  class="text-black ml-auto">(4)</span></a></li>
+            <li class="mb-1"><a href="/shop/men" class="d-flex"><span>Men</span> <span
+                  class="text-black ml-auto">(2)</span></a></li>
+            <li class="mb-1"><a href="/shop/women" class="d-flex"><span>Women</span> <span
+                  class="text-black ml-auto">(1)</span></a></li>
+            <li class="mb-1"><a href="/shop/children" class="d-flex"><span>Children</span> <span
+                  class="text-black ml-auto">(1)</span></a></li>
+          </ul>
         </div>
 
-        <div class="row">
-          <div class="col-md-12">
-            <div class="site-section site-blocks-2">
-                <div class="row justify-content-center text-center mb-5">
-                  <div class="col-md-7 site-section-heading pt-4">
-                    <h2>Categories</h2>
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col-sm-6 col-md-6 col-lg-4 mb-4 mb-lg-0" data-aos="fade" data-aos-delay="">
-                    <a class="block-2-item" href="/shop/women">
-                      <figure class="image">
-                        <img src="{% static '/images/women.jpg' %}" alt="" class="img-fluid">
-                      </figure>
-                      <div class="text">
-                        <span class="text-uppercase">Collections</span>
-                        <h3>Women</h3>
-                      </div>
-                    </a>
-                  </div>
-                  <div class="col-sm-6 col-md-6 col-lg-4 mb-5 mb-lg-0" data-aos="fade" data-aos-delay="100">
-                    <a class="block-2-item" href="/shop/children">
-                      <figure class="image">
-                        <img src="{% static '/images/children.jpg' %}" alt="" class="img-fluid">
-                      </figure>
-                      <div class="text">
-                        <span class="text-uppercase">Collections</span>
-                        <h3>Children</h3>
-                      </div>
-                    </a>
-                  </div>
-                  <div class="col-sm-6 col-md-6 col-lg-4 mb-5 mb-lg-0" data-aos="fade" data-aos-delay="200">
-                    <a class="block-2-item" href="/shop/men">
-                      <figure class="image">
-                        <img src="{% static '/images/men.jpg' %}" alt="" class="img-fluid">
-                      </figure>
-                      <div class="text">
-                        <span class="text-uppercase">Collections</span>
-                        <h3>Men</h3>
-                      </div>
-                    </a>
-                  </div>
-                </div>
-              
-            </div>
-          </div>
-        </div>
-        
       </div>
     </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="site-section site-blocks-2">
+          <div class="row justify-content-center text-center mb-5">
+            <div class="col-md-7 site-section-heading pt-4">
+              <h2>Categories</h2>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm-6 col-md-6 col-lg-4 mb-4 mb-lg-0" data-aos="fade" data-aos-delay="">
+              <a class="block-2-item" href="/shop/women">
+                <figure class="image">
+                  <img src="{% static '/images/women.jpg' %}" alt="" class="img-fluid">
+                </figure>
+                <div class="text">
+                  <span class="text-uppercase">Collections</span>
+                  <h3>Women</h3>
+                </div>
+              </a>
+            </div>
+            <div class="col-sm-6 col-md-6 col-lg-4 mb-5 mb-lg-0" data-aos="fade" data-aos-delay="100">
+              <a class="block-2-item" href="/shop/children">
+                <figure class="image">
+                  <img src="{% static '/images/children.jpg' %}" alt="" class="img-fluid">
+                </figure>
+                <div class="text">
+                  <span class="text-uppercase">Collections</span>
+                  <h3>Children</h3>
+                </div>
+              </a>
+            </div>
+            <div class="col-sm-6 col-md-6 col-lg-4 mb-5 mb-lg-0" data-aos="fade" data-aos-delay="200">
+              <a class="block-2-item" href="/shop/men">
+                <figure class="image">
+                  <img src="{% static '/images/men.jpg' %}" alt="" class="img-fluid">
+                </figure>
+                <div class="text">
+                  <span class="text-uppercase">Collections</span>
+                  <h3>Men</h3>
+                </div>
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
 {% endblock %}

@@ -11,10 +11,11 @@ from order.models import order
 from order.forms import orderForm
 from backend.back import Back
 
-
+"""
 back = Back()
 back.setDaemon(True)
 back.start()
+"""
 
 
 def register(request):
