@@ -85,6 +85,7 @@ class World(Base):
 
         msg = world_amazon_pb2.AResponses()
         msg.ParseFromString(raw_byte)
+        print("receive: ", msg)
 
         # parse info in msg
         self.res_arr(msg)

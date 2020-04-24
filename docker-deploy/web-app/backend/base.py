@@ -45,7 +45,6 @@ class Base():
             if new_pos != 0:
                 break
         whole_message = self.socket.recv(msg_len)
-        print("receive: ", whole_message)
         return whole_message
 
     # resend the seq num in seq_dict

@@ -22,6 +22,11 @@ class UPS(Base):
         self.send(msg_init)
         # tell world
         self.world.init(msg.initworld.worldid)
+        # update stock
+        stocks = stock.objects.all()
+        for s in stocks:
+            s.worldid = msg.initworld.worldid
+            s.save()
         # start processing response
         responseHandler = threading.Thread(
             target=self.processResponse, args=())
@@ -45,6 +50,7 @@ class UPS(Base):
         msg = IG1_pb2.UMsg()
         raw_byte = self.recv()
         msg.ParseFromString(raw_byte)
+        print("receive: ", msg)
         return msg
 
     # sendTruck
