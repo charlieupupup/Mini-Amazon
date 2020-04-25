@@ -8,7 +8,7 @@ PORT_UPS = 33333
 HOST_WORLD = 'vcm-12423.vm.duke.edu'
 PORT_WORLD = 23456
 
-SIMSPEED = 100000
+SIMSPEED = 10000
 
 
 class Back():
