@@ -37,5 +37,5 @@ urlpatterns = [
     path('thankyou/', thankyou, name='thankyou'),
     path('orders/', orders, name='orders'),
     path('invalid', invalid, name='invalid'),
-    path('search', search, name='search')
+    path('search/', search, name='search')
 ]

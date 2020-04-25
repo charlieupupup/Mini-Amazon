@@ -1,9 +1,14 @@
 1. fancy web page
+Our fancy web page make great use of css, javascript and html, make our website smooth and easy to use.
 
 2. email notification
+When an order is confirmed, the user will receive an email notification
 
 3. search function
+We have a search bar, allowing users to search for the products we have
 
 4. customer service
+We have a customer service form, which allows user to put their contact in our website and keep in touch
 
 5. amazing chat bot, support speaking
+We have a fantastic chatbot, which answer user's questions and even listen to their speech

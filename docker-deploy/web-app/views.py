@@ -178,7 +178,7 @@ def orders(request):
     return render(request, "orders.html", context)
 
 def search(request):
-    text = request.POST['input', 'men']
+    text = request.GET['s']
     if text <= 'children':
         return redirect('/shop/children')
     elif text <= 'men':
