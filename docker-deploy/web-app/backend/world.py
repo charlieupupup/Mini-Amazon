@@ -17,6 +17,13 @@ class World(Base):
         self.ups = ups
 
     def init(self, world_id):
+        # clear order
+        order.objects.all().delete()
+
+        stocks = stock.objects.all()
+        for s in stocks:
+            s.count = 0
+            s.save()
         """
         message AConnect{
             optional int64 worldid = 1;
@@ -158,7 +165,7 @@ class World(Base):
                 sid = l.shipid
                 seq = l.seqnum
 
-                shipment = order.objects.get(pid=sid)
+                shipment = order.objects.get(pkgid=sid)
                 self.ups.loaded(shipment)
 
                 info_world.acks.append(seq)
@@ -233,7 +240,7 @@ class World(Base):
         pack.whnum = curr_order.whid
         pack.shipid = curr_order.pkgid
         pack.truckid = curr_order.truckid
-        pack.seq = self.seq_num
+        pack.seqnum = self.seq_num
 
         self.seq_dict[self.seq_num] = command
         self.seq_num += 1
