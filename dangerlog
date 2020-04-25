@@ -15,3 +15,10 @@ since python data structure is thread safe, we think we prevent the racing compl
 we use base class for communication, and reduce redundancy, making it less to make mistakes
 ups & world inherit from base, the base is for decode & encode
 
+4.input validation
+after each user input, we check the correctness and availability.
+Invalid inputs will be rejected and user will be notified
+
+5.user identification
+not user will be able to access our website or mess with our data.
+High level of security ensured
