@@ -1,5 +1,5 @@
 import threading
-
+from django.core.mail import send_mail
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
@@ -149,6 +149,8 @@ def thankyou(request):
             entry.save()
             t2 = threading.Thread(target=back.pack, args=(pkgid,))
             t2.start()
+            send_mail('Your order is confirmed!', 'Thank you for using Mini Amazon!', 'pcphd97@163.com',
+                      [order.objects.get(pkgid=pkgid).email], fail_silently=False)
             return render(request, 'thankyou.html', {})
 
 

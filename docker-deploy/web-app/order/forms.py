@@ -17,6 +17,7 @@ class orderForm(forms.ModelForm):
             'whid',
             'truckid',
             'status',
+            'email'
         ]
         widgets = {'user': HiddenInput(),
                    'x': forms.TextInput(attrs={'class': 'form-control'}),
@@ -26,5 +27,6 @@ class orderForm(forms.ModelForm):
                    'count': forms.TextInput(attrs={'class': 'form-control'}),
                    'whid': HiddenInput(),
                    'truckid': HiddenInput(),
-                   'status': HiddenInput()}
+                   'status': HiddenInput(),
+                   'email': forms.TextInput(attrs={'class': 'form-control'})}
 
