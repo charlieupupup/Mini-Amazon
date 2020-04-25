@@ -176,3 +176,13 @@ def orders(request):
         'orders': orders
     }
     return render(request, "orders.html", context)
+
+def search(request):
+    text = request.POST['text']
+    if text <= 'children':
+        return redirect('/shop/children')
+    elif text <= 'men':
+        return redirect('/shop/men')
+    else:
+        return redirect('/shop/women')
+
