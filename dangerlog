@@ -1,0 +1,17 @@
+1.message accept and resend.
+we use a dict(key: seq, value: sent message) to record the the info we send. once we recv ack,
+we will pop it out. otherwise we will resend the message each 1s
+
+we use a set to record the info we receive. we only proceed the info not in set, then we will 
+its seq into the set
+
+2.multi-thread
+we use 2 thread in communication part(i.e. ups & world)
+1 thread for recv info
+1 thread for resend info
+since python data structure is thread safe, we think we prevent the racing completely
+
+3.good oo design
+we use base class for communication, and reduce redundancy, making it less to make mistakes
+ups & world inherit from base, the base is for decode & encode
+
