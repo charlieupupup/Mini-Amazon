@@ -134,6 +134,9 @@ def thankyou(request):
         whid = int(form.data['whid'])
         count = int(form.data['count'])
         storage = stock.objects.get(pid=pid).count
+        if (count <= 0 or pid < 1 or pid > 4):
+            print('invalid input')
+            return redirect('/invalid')
         if (count > storage):
             # not enough
             print('not enough stock')
