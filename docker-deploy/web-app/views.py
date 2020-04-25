@@ -186,3 +186,8 @@ def search(request):
     else:
         return redirect('/shop/women')
 
+def touch(request):
+    email = request.GET['c_email']
+    send_mail('Hello from Mini Amazon!', 'Thank you for contacting us, be in touch!', 'pcphd97@163.com',
+              [email], fail_silently=False)
+    return redirect('/index')
