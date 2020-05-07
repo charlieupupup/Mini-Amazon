@@ -180,6 +180,7 @@ def orders(request):
     }
     return render(request, "orders.html", context)
 
+
 def search(request):
     text = request.GET['s']
     if text <= 'children':
@@ -188,6 +189,7 @@ def search(request):
         return redirect('/shop/men')
     else:
         return redirect('/shop/women')
+
 
 def touch(request):
     email = request.GET['c_email']
